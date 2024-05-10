@@ -2,7 +2,7 @@ SNOVA
 =======
 This repository contains the latest official reference & AVX implementation of the SNOVA signature scheme in C language.
 
-Please refer to this [document](./blob/main/doc/NIST_Submission_Source_Code_Differences_Document.md) for the main differences between the previously submitted code to NIST and the current version.
+Please refer to this [document](https://github.com/pqclab-zero/SNOVA/blob/main/doc/NIST_Submission_Source_Code_Differences_Document.md) for the main differences between the previously submitted code to NIST and the current version.
 
 
 Build instructions

@@ -3,14 +3,14 @@ NIST Submission Source Code Differences Document
 
 Optimized Implementation
 -------
-We have abandoned the previously submitted optimized implementation in favor of a new approach, which includes added AVX optimization. All optimized code can be found in this folder [path](./blob/main/snova_plasma/)."
+We have abandoned the previously submitted optimized implementation in favor of a new approach, which includes added AVX optimization. All optimized code can be found in this folder [path](https://github.com/pqclab-zero/SNOVA/tree/main/snova_plasma)."
 
-And optimization modes are configured through this [file](./blob/main/snova_plasma/snova_plasms_option.h).
+And optimization modes are configured through this [file](https://github.com/pqclab-zero/SNOVA/blob/main/snova_plasma/snova_plasms_option.h).
 
 
 OpenSSL clean
 -------
-Remove OpenSSL, replace it with [AES](./blob/main/aes/) and [shake](./blob/main/shake/) source code, making SNOVA a separate source code.
+Remove OpenSSL, replace it with [AES](https://github.com/pqclab-zero/SNOVA/tree/main/aes) and [shake](https://github.com/pqclab-zero/SNOVA/tree/main/shake) source code, making SNOVA a separate source code.
 
 Constant-time
 -------
