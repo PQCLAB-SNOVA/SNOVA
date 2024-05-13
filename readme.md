@@ -2,8 +2,21 @@ SNOVA
 =======
 This repository contains the latest official reference & AVX implementation of the SNOVA signature scheme in C language.
 
-Please refer to this [document](https://github.com/pqclab-zero/SNOVA/blob/main/doc/NIST_Submission_Source_Code_Differences_Document.md) for the main differences between the previously submitted code to NIST and the current version.
+Please refer to this [document](https://github.com/PQCLAB-SNOVA/SNOVA/blob/main/doc/NIST_Submission_Source_Code_Differences_Document.md) for the main differences between the previously submitted code to NIST and the current version.
 
+SNOVA parameter
+-------
+| SL |         Name  |  V |  O |  L | sk size (esk) | sk size (ssk) |    pk size   | sign size  |
+|----| --------------|----|----|----|---------------|---------------|--------------|------------|
+|  1 | SNOVA_37_17_2 | 37 | 17 |  2 |    60008(+48) |            48 |    9826(+16) |   108(+16) |
+|  1 |  SNOVA_25_8_3 | 25 |  8 |  3 |    37962(+48) |            48 |    2304(+16) | 148.5(+16) |
+|  1 |  SNOVA_24_5_4 | 24 |  5 |  4 |    34112(+48) |            48 |    1000(+16) |   232(+16) |
+|  3 | SNOVA_56_25_2 | 56 | 25 |  2 |   202132(+48) |            48 |   31250(+16) |   162(+16) |
+|  3 | SNOVA_49_11_3 | 49 | 11 |  3 |   174798(+48) |            48 |  5989.5(+16) |   270(+16) |
+|  3 |  SNOVA_37_8_4 | 37 |  8 |  4 |   128384(+48) |            48 |    4096(+16) |   360(+16) |
+|  5 | SNOVA_75_33_2 | 75 | 33 |  2 |   515360(+48) |            48 |   71874(+16) |   216(+16) |
+|  5 | SNOVA_66_15_3 | 66 | 15 |  3 |   432297(+48) |            48 | 15187.5(+16) | 364.5(+16) |
+|  5 | SNOVA_60_10_4 | 60 | 10 |  4 |   389312(+48) |            48 |    8000(+16) |   560(+16) |
 
 Build instructions
 -------
@@ -116,3 +129,5 @@ Thank you to our team members from SNOVA:
 - Po-En Tseng
 - Chia-Chun Wang
 
+## Team Contribution Disclaimer
+All commits in this project are the result of team collaboration. The contributions made by the **pqclab-zero** account represent collective efforts of the team, **not individual contributions**.
