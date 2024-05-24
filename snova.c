@@ -2,7 +2,16 @@
 
 #include "gf16_matrix_inline.h"
 #include "snova_kernel.h"
-#include "snova_plasma/snova_plasms_option.h"
+
+#if OPTIMISATION != 0
+#include "snova_plasma/snova_plasma_option.h"
+#else
+#define gen_F gen_F_ref
+#define gen_P22 gen_P22_ref
+#define sign_digest_core sign_digest_core_ref
+#define verify_core verify_signture_ref
+#endif
+
 
 /**
  * SNOVA init
@@ -14,13 +23,9 @@ void snova_init() {
         init_gf16_tables();
         gen_S_array();
 
-#if OPTIMISATION == 2 && rank == 4
-        init_4x4();
-#elif OPTIMISATION == 2 && rank == 2
-        init_2x2();
-#elif OPTIMISATION == 2
-        init_avx_table();
-#endif
+#if OPTIMISATION != 0
+		snova_plasma_init();
+#endif	
     }
 }
 

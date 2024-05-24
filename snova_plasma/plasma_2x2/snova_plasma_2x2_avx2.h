@@ -245,19 +245,14 @@ void gen_F_2x2_vtl(map_group2 *map2, map_group1 *map1, T12_t T12)
                 *(uint16_t *)&p11_8[(dk * l_SNOVA + 1) * mvl_SNOVA + mi * v_SNOVA * l_SNOVA + di * l_SNOVA] = ((val >> 8) & 0xf) ^ ((val >> 16) & 0xf00);
             }
 
-#if CONSTANT_TIME
     for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
         for (int dj_j1 = 0; dj_j1 < o_SNOVA; dj_j1++)
+        {
+            __m256i k_lh = vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA + dj_j1] & 0xf) ^
+                _mm256_slli_epi16(vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA + dj_j1] >> 4), 4);
             for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
-#else
-    for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
-        for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
-            for (int dj_j1 = 0; dj_j1 < o_SNOVA; dj_j1++)
-#endif
-            {
-                __m256i k_lh = vtl_multtab2(t12_8[dk_k1 * o_SNOVA + dj_j1]);
                 res256[dj_j1 * mvl_SNOVA32 + mi_di_i1] ^= _mm256_shuffle_epi8(k_lh, p11_256[dk_k1 * mvl_SNOVA32 + mi_di_i1]);
-            }
+        }
 
     for (int di = 0; di < v_SNOVA; ++di)
         for (int dj = 0; dj < o_SNOVA; ++dj)
@@ -285,19 +280,14 @@ void gen_F_2x2_vtl(map_group2 *map2, map_group1 *map1, T12_t T12)
                 *(uint16_t *)&p11_8[(di * l_SNOVA + 1) * mvl_SNOVA + mi * v_SNOVA * l_SNOVA + dk * l_SNOVA] = (val >> 16) & 0x0f0f;
             }
 
-#if CONSTANT_TIME
     for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
         for (int dj_j1 = 0; dj_j1 < o_SNOVA; dj_j1++)
+        {
+            __m256i k_lh = vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA + dj_j1] & 0xf) ^
+                _mm256_slli_epi16(vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA + dj_j1] >> 4), 4);
             for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
-#else
-    for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
-        for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
-            for (int dj_j1 = 0; dj_j1 < o_SNOVA; dj_j1++)
-#endif
-            {
-                __m256i k_lh = vtl_multtab2(t12_8[dk_k1 * o_SNOVA + dj_j1]);
                 res256[dj_j1 * mvl_SNOVA32 + mi_di_i1] ^= _mm256_shuffle_epi8(k_lh, p11_256[dk_k1 * mvl_SNOVA32 + mi_di_i1]);
-            }
+        }
 
     // Shuffle back
     for (int mi = 0; mi < m_SNOVA; ++mi)

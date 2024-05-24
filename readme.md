@@ -4,6 +4,13 @@ This repository contains the latest official reference & AVX implementation of t
 
 Please refer to this [document](https://github.com/PQCLAB-SNOVA/SNOVA/blob/main/doc/NIST_Submission_Source_Code_Differences_Document.md) for the main differences between the previously submitted code to NIST and the current version.
 
+Frequently Used Table of Contents
+-------
+- [SNOVA parameter](#snova-parameter)
+- [Test programs](#test-programs)
+- [Set the parameters](#set-the-parameters)
+- [Optimization Settings](#optimization-settings)
+
 SNOVA parameter
 -------
 | SL |         Name  |  V |  O |  L | sk size (esk) | sk size (ssk) |    pk size   | sign size  |
@@ -31,17 +38,22 @@ Test programs
 -------
 The steps to compile and run the SNOVA signature scheme's test program on Linux are as follows:
 
-1. test keypair, sign and verify
+### Test keypair, sign and verify:
 ```bash
 make clean
 make test
 ```
-2. test nist api
+### Test nist api:
 ```bash
 make clean
 make test_api
 ```
-3. test speed
+### Genarate KAT:
+```bash
+make clean
+make PQCgenKAT
+```
+### Test speed:
 ```bash
 make clean
 make test_speed
@@ -50,13 +62,15 @@ make test_speed
 make clean
 make test_speed  TEST_SPEED_N=4096
 ```
+Tips. TEST_SPEED_N specifies the number of test iterations.
+
 
 Set the parameters
 -------
 Only need to modify the SNOVA_V, SNOVA_O, SNOVA_L, SK_IS_SEED in the Makefile file.
 
 Example: (makefile line 37)
-```make
+```bash
 SNOVA_V ?= 24
 SNOVA_O ?= 5
 SNOVA_L ?= 4
@@ -64,21 +78,12 @@ SNOVA_L ?= 4
 SK_IS_SEED ?= 0 # 0: sk = ssk; 1: sk = esk
 ```
 
-Genarate KAT
--------
-```bash
-make clean
-make PQCgenKAT
-```
-
 Tip: The following parameters can all be input during MAKE execution, such as
--------
 ```bash
-make test_speed SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 TEST_SPEED_N=4096
+make test_speed SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 SK_IS_SEED=1 TEST_SPEED_N=4096
 ```
 
-The following are the latest reference parameters.
--------
+### The following are the latest reference parameters.
 
 SL 1: 
 | SNOVA_V | SNOVA_O | SNOVA_L |
@@ -102,21 +107,49 @@ SL 5:
 |      60 |      10 |       4 |
 
 
-Example:
-SL 5 (60, 10, 4)
-```
+### Example: SL 5 (60, 10, 4)
+```bash
 make test_speed SNOVA_V=60 SNOVA_O=10 SNOVA_L=4 TEST_SPEED_N=512
 ```
-```
+```bash
 make PQCgenKAT SNOVA_V=60 SNOVA_O=10 SNOVA_L=4 SK_IS_SEED=1
 ```
+```bash
+make test_api SNOVA_V=60 SNOVA_O=10 SNOVA_L=4 SK_IS_SEED=0
 ```
-make test_api SNOVA_V=60 SNOVA_O=10 SNOVA_L=4 SK_IS_SEED=1
+
+Optimization Source Code
+-------
+All optimized code can be found in this folder "snova_plasma", You can refer to line 6 in "snova.c" to see how to switch optimization methods.
+
+Optimization Settings
+-------
+To configure optimization settings, you only need to adjust the OPTIMISATION parameter in the makefile or use the "OPTIMISATION=" command. A detailed description can also be found within the makefile.
+
+If no configuration is provided, the most optimal method will be used automatically.
+
+### Tips.
+```bash
+OPTIMISATION = 0  # Using Reference
+OPTIMISATION = 1  # Using General Optimization
+OPTIMISATION = 2  # Using AVX2 Optimization
 ```
 
+### Example: (Using Reference)
+```bash
+make test_api SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 SK_IS_SEED=1 OPTIMISATION=0
+```
+### Example: (Using General Optimization)
+```bash
+make test_api SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 SK_IS_SEED=1 OPTIMISATION=1
+```
+Example: (Using AVX2 Optimization)
+```bash
+make test_api SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 SK_IS_SEED=1 OPTIMISATION=2
+```
 
-## Team Members
-
+Team Members
+-------
 Thank you to our team members from SNOVA:
 
 - Lih-Chung Wang
@@ -129,5 +162,6 @@ Thank you to our team members from SNOVA:
 - Po-En Tseng
 - Chia-Chun Wang
 
-## Team Contribution Disclaimer
+Team Contribution Disclaimer
+-------
 All commits in this project are the result of team collaboration. The contributions made by the **pqclab-zero** account represent collective efforts of the team, **not individual contributions**.

@@ -1,4 +1,5 @@
 // AES primitives for SNOVA
+// OQS commit 9b14b3db6d196f342636760a880ed611064967c4
 
 #include <assert.h>
 #include <stddef.h>
@@ -8,11 +9,10 @@
 #include "aes_local.h"
 #include "snova_aes.h"
 
-
 #if __AVX2__
 
 int AES_128_CTR(unsigned char *output, size_t outputByteLen,
-                   const unsigned char *input, size_t inputByteLen)
+                const unsigned char *input, size_t inputByteLen)
 {
     assert(inputByteLen > 0);
     const uint8_t iv[16] = {0};
@@ -31,10 +31,32 @@ void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *
     oqs_aes256_free_schedule_ni(schedule);
 }
 
+#elif __ARM_ARCH
+
+int AES_128_CTR(unsigned char *output, size_t outputByteLen,
+                const unsigned char *input, size_t inputByteLen)
+{
+    assert(inputByteLen > 0);
+    const uint8_t iv[16] = {0};
+    void *schedule = NULL;
+    oqs_aes128_load_schedule_no_bitslice(input, &schedule);
+    oqs_aes128_ctr_enc_sch_armv8(iv, 16, schedule, output, outputByteLen);
+    oqs_aes128_free_schedule_no_bitslice(schedule);
+    return (int)outputByteLen;
+}
+
+void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *output)
+{
+    void *schedule = NULL;
+    oqs_aes256_load_schedule_no_bitslice(key, &schedule);
+    oqs_aes256_ecb_enc_sch_armv8(input, 16, schedule, output);
+    oqs_aes256_free_schedule_no_bitslice(schedule);
+}
+
 #else
 
 int AES_128_CTR(unsigned char *output, size_t outputByteLen,
-                  const unsigned char *input, size_t inputByteLen)
+                const unsigned char *input, size_t inputByteLen)
 {
     assert(inputByteLen > 0);
     const uint8_t iv[16] = {0};

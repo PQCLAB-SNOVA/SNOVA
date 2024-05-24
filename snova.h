@@ -1,10 +1,7 @@
 #ifndef SNOVA_H
 #define SNOVA_H
 
-#include "shake/KeccakHash.h"
-#if PK_EXPAND_VEXOF
-#include "vexof/vexof.h"
-#endif
+#include "shake/snova_shake.h"
 
 #include "deriv_params.h"
 #include "gf16_matrix.h"

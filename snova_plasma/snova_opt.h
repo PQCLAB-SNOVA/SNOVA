@@ -10,80 +10,151 @@
  */
 void gen_F_opt(map_group2 *map2, map_group1 *map1, T12_t T12)
 {
-    uint32_t xF11a[m_SNOVA * v_SNOVA * v_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xT12a[v_SNOVA * o_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xF11b[m_SNOVA * v_SNOVA * v_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xT12b[v_SNOVA * o_SNOVA * lsq_SNOVA] = {0};
-
-    uint32_t xtemp1[m_SNOVA * v_SNOVA * o_SNOVA * l_SNOVA * l_SNOVA] = {0};
-    uint32_t xtemp2[m_SNOVA * v_SNOVA * o_SNOVA * l_SNOVA * l_SNOVA] = {0};
-
-    // Prepare
-
-    for (int dj = 0; dj < v_SNOVA; ++dj)
-        for (int dk = 0; dk < o_SNOVA; ++dk)
-            for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                {
-                    uint32_t val = gf16_from_nibble(T12[dj][dk][i1 * l_SNOVA + j1]);
-                    xT12a[((dj * l_SNOVA + i1) * o_SNOVA + dk) * l_SNOVA + j1] = val;
-                    xT12b[((dj * l_SNOVA + j1) * o_SNOVA + dk) * l_SNOVA + i1] = val;
-                }
-
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int di = 0; di < v_SNOVA; di++)
-            for (int dk = 0; dk < v_SNOVA; dk++)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    {
-                        uint32_t val = gf16_from_nibble(map1->P11[mi][di][dk][i1 * l_SNOVA + j1]);
-                        xF11a[(dk * l_SNOVA + j1) * m_SNOVA * v_SNOVA * l_SNOVA +
-                              mi * v_SNOVA * l_SNOVA + di * l_SNOVA + i1] = val;
-                        xF11b[(di * l_SNOVA + i1) * m_SNOVA * v_SNOVA * l_SNOVA +
-                              mi * v_SNOVA * l_SNOVA + dk * l_SNOVA + j1] = val;
-                    }
-
-    // Actual calculations
+    uint32_t xF11[m_SNOVA * lsq_SNOVA] = {0};
+    uint32_t xT12[v_SNOVA * o_SNOVA * lsq_SNOVA] = {0};
 
     memcpy(map2->F11, map1->P11, m_SNOVA * v_SNOVA * v_SNOVA * lsq_SNOVA);
     memcpy(map2->F12, map1->P12, m_SNOVA * v_SNOVA * o_SNOVA * lsq_SNOVA);
     memcpy(map2->F21, map1->P21, m_SNOVA * o_SNOVA * v_SNOVA * lsq_SNOVA);
 
-    for (int dj_j1 = 0; dj_j1 < o_SNOVA * l_SNOVA; ++dj_j1)
-        for (int mi_di_i1 = 0; mi_di_i1 < m_SNOVA * v_SNOVA * l_SNOVA; ++mi_di_i1)
-            for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
-                xtemp1[dj_j1 * m_SNOVA * v_SNOVA * l_SNOVA + mi_di_i1] ^=
-                    xF11a[dk_k1 * m_SNOVA * v_SNOVA * l_SNOVA + mi_di_i1] *
-                    xT12a[dk_k1 * o_SNOVA * l_SNOVA + dj_j1];
+    // F12
 
-    for (int dj_j1 = 0; dj_j1 < o_SNOVA * l_SNOVA; ++dj_j1)
-        for (int mi_di_i1 = 0; mi_di_i1 < m_SNOVA * v_SNOVA * l_SNOVA; ++mi_di_i1)
-            for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
-                xtemp2[dj_j1 * m_SNOVA * v_SNOVA * l_SNOVA + mi_di_i1] ^=
-                    xF11b[dk_k1 * m_SNOVA * v_SNOVA * l_SNOVA + mi_di_i1] *
-                    xT12b[dk_k1 * o_SNOVA * l_SNOVA + dj_j1];
+    for (int dj = 0; dj < v_SNOVA; ++dj)
+        for (int dk = 0; dk < o_SNOVA; ++dk)
+            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    xT12[((dj * l_SNOVA + i1) * o_SNOVA + dk) * l_SNOVA + j1] = gf16_from_nibble(T12[dj][dk][i1 * l_SNOVA + j1]);
 
-    // Convert back
+    for (int di = 0; di < v_SNOVA; di++)
+    {
+        uint32_t xtemp[m_SNOVA * o_SNOVA * l_SNOVA * l_SNOVA] = {0};
 
-    for (int mi = 0; mi < m_SNOVA; ++mi)
-        for (int di = 0; di < v_SNOVA; ++di)
+        for (int dk = 0; dk < v_SNOVA; dk++)
+        {
+            for (int mi = 0; mi < m_SNOVA; mi++)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                        xF11[j1 * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1] =
+                            gf16_from_nibble(map1->P11[mi][di][dk][i1 * l_SNOVA + j1]);
+
+            for (int dj = 0; dj < o_SNOVA; ++dj)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    for (int mi = 0; mi < m_SNOVA; ++mi)
+                        for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                            for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                                xtemp[(dj * l_SNOVA + j1) * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1] ^=
+                                    xF11[k1 * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1] *
+                                    xT12[(dk * l_SNOVA + k1) * o_SNOVA * l_SNOVA + (dj * l_SNOVA + j1)];
+        }
+
+        for (int mi = 0; mi < m_SNOVA; ++mi)
             for (int dj = 0; dj < o_SNOVA; ++dj)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         map2->F12[mi][di][dj][i1 * l_SNOVA + j1] ^=
-                            gf16_to_nibble(xtemp1[(dj * l_SNOVA + j1) * m_SNOVA * v_SNOVA * l_SNOVA +
-                                                  mi * v_SNOVA * l_SNOVA + di * l_SNOVA + i1]);
+                            gf16_to_nibble(xtemp[(dj * l_SNOVA + j1) * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1]);
+    }
 
-    for (int mi = 0; mi < m_SNOVA; ++mi)
-        for (int dj = 0; dj < o_SNOVA; ++dj)
-            for (int di = 0; di < v_SNOVA; ++di)
+    // Repeat F21
+
+    for (int dj = 0; dj < v_SNOVA; ++dj)
+        for (int dk = 0; dk < o_SNOVA; ++dk)
+            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    xT12[((dj * l_SNOVA + j1) * o_SNOVA + dk) * l_SNOVA + i1] = gf16_from_nibble(T12[dj][dk][i1 * l_SNOVA + j1]);
+
+    for (int di = 0; di < v_SNOVA; di++)
+    {
+        uint32_t xtemp[m_SNOVA * o_SNOVA * l_SNOVA * l_SNOVA] = {0};
+
+        for (int dk = 0; dk < v_SNOVA; dk++)
+        {
+            for (int mi = 0; mi < m_SNOVA; mi++)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    {
+                        xF11[i1 * m_SNOVA * l_SNOVA + mi * l_SNOVA + j1] =
+                            gf16_from_nibble(map1->P11[mi][dk][di][i1 * l_SNOVA + j1]);
+
+            for (int dj = 0; dj < o_SNOVA; ++dj)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    for (int mi = 0; mi < m_SNOVA; ++mi)
+                        for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                            for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                                xtemp[(dj * l_SNOVA + j1) * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1] ^=
+                                    xF11[k1 * m_SNOVA * l_SNOVA + mi * l_SNOVA + i1] *
+                                    xT12[(dk * l_SNOVA + k1) * o_SNOVA * l_SNOVA + (dj * l_SNOVA + j1)];
+        }
+
+        for (int mi = 0; mi < m_SNOVA; ++mi)
+            for (int dj = 0; dj < o_SNOVA; ++dj)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         map2->F21[mi][dj][di][i1 * l_SNOVA + j1] ^=
-                            gf16_to_nibble(xtemp2[(dj * l_SNOVA + i1) * m_SNOVA * v_SNOVA * l_SNOVA +
-                                                  mi * v_SNOVA * l_SNOVA + di * l_SNOVA + j1]);
-                    }
+                            gf16_to_nibble(xtemp[(dj * l_SNOVA + i1) * m_SNOVA * l_SNOVA + mi * l_SNOVA + j1]);
+    }
+}
+
+void gen_P22_opt(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22)
+{
+    uint32_t xT12[v_SNOVA * o_SNOVA * lsq_SNOVA];
+    uint32_t xF12[v_SNOVA * o_SNOVA * lsq_SNOVA];
+    uint32_t xP21[o_SNOVA * v_SNOVA * lsq_SNOVA];
+    P22_t P22 = {0};
+
+    for (int di = 0; di < v_SNOVA; ++di)
+        for (int dj = 0; dj < o_SNOVA; ++dj)
+            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    xT12[(di * o_SNOVA + dj) * lsq_SNOVA + i1 * l_SNOVA + j1] =
+                        gf16_from_nibble(T12[di][dj][i1 * l_SNOVA + j1]);
+
+    for (int mi = 0; mi < m_SNOVA; ++mi)
+    {
+        uint32_t xP22[o_SNOVA * o_SNOVA * lsq_SNOVA] = {0};
+
+        for (int di = 0; di < v_SNOVA; ++di)
+            for (int dk = 0; dk < o_SNOVA; ++dk)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                        xF12[(di * o_SNOVA + dk) * lsq_SNOVA + i1 * l_SNOVA + j1] =
+                            gf16_from_nibble(F12[mi][di][dk][i1 * l_SNOVA + j1]);
+
+        for (int di = 0; di < v_SNOVA; ++di)
+            for (int dj = 0; dj < o_SNOVA; ++dj)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                        xP21[(dj * v_SNOVA + di) * lsq_SNOVA + i1 * l_SNOVA + j1] =
+                            gf16_from_nibble(P21[mi][dj][di][i1 * l_SNOVA + j1]);
+
+        for (int di = 0; di < v_SNOVA; ++di)
+            for (int dj = 0; dj < o_SNOVA; ++dj)
+                for (int dk = 0; dk < o_SNOVA; ++dk)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                            for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                                xP22[(dj * o_SNOVA + dk) * lsq_SNOVA + i1 * l_SNOVA + j1] ^=
+                                    xF12[(di * o_SNOVA + dk) * lsq_SNOVA + k1 * l_SNOVA + j1] *
+                                    xT12[(di * o_SNOVA + dj) * lsq_SNOVA + i1 * l_SNOVA + k1];
+
+        for (int dj = 0; dj < o_SNOVA; ++dj)
+            for (int di = 0; di < v_SNOVA; ++di)
+                for (int dk = 0; dk < o_SNOVA; ++dk)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                            for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                                xP22[(dj * o_SNOVA + dk) * lsq_SNOVA + i1 * l_SNOVA + j1] ^=
+                                    xP21[(dj * v_SNOVA + di) * lsq_SNOVA + i1 * l_SNOVA + k1] *
+                                    xT12[(di * o_SNOVA + dk) * lsq_SNOVA + k1 * l_SNOVA + j1];
+
+        for (int dj = 0; dj < o_SNOVA; ++dj)
+            for (int dk = 0; dk < o_SNOVA; ++dk)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                        P22[mi][dj][dk][i1 * l_SNOVA + j1] =
+                            gf16_to_nibble(xP22[((dj * o_SNOVA + dk) * l_SNOVA + i1) * l_SNOVA + j1]);
+    }
+
+    convert_GF16s_to_bytes(outP22, (uint8_t *)P22, m_SNOVA * o_SNOVA * o_SNOVA * lsq_SNOVA);
 }
 
 /**
@@ -114,74 +185,47 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
     createSignedHash(digest, bytes_digest, pt_public_key_seed, array_salt, signed_hash);
     convert_bytes_to_GF16s(signed_hash, hash_in_GF16, GF16s_hash);
 
-    // Prepare
+    // Try to find a solution
 
     uint32_t xT12[v_SNOVA][o_SNOVA][lsq_SNOVA] = {0};
     uint32_t xGauss[m_SNOVA * lsq_SNOVA][m_SNOVA * lsq_SNOVA + 1] = {0};
-
-    uint32_t xF11[m_SNOVA * v_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA] = {0};
-    uint32_t xF12[m_SNOVA * v_SNOVA * o_SNOVA * l_SNOVA * l_SNOVA] = {0};
-    uint32_t xF21[m_SNOVA * o_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA] = {0};
-
-    uint32_t xAalpha[lsq_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xBalpha[lsq_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xQalpha1[lsq_SNOVA * lsq_SNOVA] = {0};
-    uint32_t xQalpha2[lsq_SNOVA * lsq_SNOVA] = {0};
-
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int jdx = 0; jdx < v_SNOVA; jdx++)
-            for (int kdx = 0; kdx < v_SNOVA; kdx++)
-                for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                        xF11[jdx * v_SNOVA * m_SNOVA * l_SNOVA * l_SNOVA + k1 * m_SNOVA * v_SNOVA * l_SNOVA + mi * v_SNOVA * l_SNOVA + kdx * l_SNOVA + j1] =
-                            gf16_from_nibble(F11[mi][jdx][kdx][k1 * l_SNOVA + j1]);
-
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int jdx = 0; jdx < v_SNOVA; jdx++)
-            for (int kdx = 0; kdx < o_SNOVA; kdx++)
-                for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                        xF12[jdx * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA + k1 * m_SNOVA * o_SNOVA * l_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + j1] =
-                            gf16_from_nibble(F12[mi][jdx][kdx][k1 * l_SNOVA + j1]);
-
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int jdx = 0; jdx < v_SNOVA; jdx++)
-            for (int kdx = 0; kdx < o_SNOVA; kdx++)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                        xF21[(jdx * l_SNOVA + k1) * m_SNOVA * o_SNOVA * l_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + i1] =
-                            gf16_from_nibble(F21[mi][kdx][jdx][i1 * l_SNOVA + k1]);
-
-    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-        for (int idx = 0; idx < lsq_SNOVA; ++idx)
-        {
-            xQalpha1[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha1[alpha][idx]);
-            xQalpha2[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha2[alpha][idx]);
-            xAalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Aalpha[alpha][idx]);
-            xBalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Balpha[alpha][idx]);
-        }
 
     for (int dj = 0; dj < v_SNOVA; ++dj)
         for (int dk = 0; dk < o_SNOVA; ++dk)
             for (int idx = 0; idx < lsq_SNOVA; ++idx)
                 xT12[dj][dk][idx] = gf16_from_nibble(T12[dj][dk][idx]);
 
-    // Try to find a solution
-
     do
     {
+        // Prepare
+
+        uint32_t xF11[v_SNOVA * l_SNOVA] = {0};
+        uint32_t xF12[v_SNOVA * l_SNOVA] = {0};
+        uint32_t xF21[v_SNOVA * l_SNOVA] = {0};
+
+        uint32_t xAalpha[lsq_SNOVA * lsq_SNOVA] = {0};
+        uint32_t xBalpha[lsq_SNOVA * lsq_SNOVA] = {0};
+        uint32_t xQalpha1[lsq_SNOVA * lsq_SNOVA] = {0};
+        uint32_t xQalpha2[lsq_SNOVA * lsq_SNOVA] = {0};
+
+        for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+            for (int idx = 0; idx < lsq_SNOVA; ++idx)
+            {
+                xQalpha1[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha1[alpha][idx]);
+                xQalpha2[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha2[alpha][idx]);
+                xAalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Aalpha[alpha][idx]);
+                xBalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Balpha[alpha][idx]);
+            }
+
         uint8_t vinegar_in_byte[(v_SNOVA * lsq_SNOVA + 1) >> 1] = {0};
 
         uint32_t xLeft[lsq_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA] = {0};
         uint32_t xRight[lsq_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA] = {0};
         uint32_t xFvv_in_GF16Matrix[m_SNOVA][l_SNOVA][l_SNOVA] = {0};
 
-        uint32_t xtemp3[m_SNOVA * lsq_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA] = {0};
-        uint32_t xtemp_l[m_SNOVA * o_SNOVA * lsq_SNOVA * l_SNOVA * l_SNOVA] = {0};
-        uint32_t xtemp_r[m_SNOVA * o_SNOVA * lsq_SNOVA * l_SNOVA * l_SNOVA] = {0};
+        uint32_t xtemp_int[m_SNOVA * o_SNOVA * lsq_SNOVA * l_SNOVA * l_SNOVA] = {0};
         uint32_t xTemp[m_SNOVA][o_SNOVA][l_SNOVA][l_SNOVA][l_SNOVA][l_SNOVA] = {0};
-        uint32_t xTemp_left[m_SNOVA][o_SNOVA][lsq_SNOVA][lsq_SNOVA] = {0};
-        uint32_t xTemp_right[m_SNOVA][o_SNOVA][lsq_SNOVA][lsq_SNOVA] = {0};
+        uint32_t xTemp_lr[m_SNOVA][o_SNOVA][lsq_SNOVA][lsq_SNOVA] = {0};
 
         num_sign++;
         flag_redo = 0;
@@ -205,22 +249,21 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
         // evaluate the vinegar part of central map
         // 4 * V * L^5
 
-        uint32_t xTemp_Q1[lsq_SNOVA][v_SNOVA][lsq_SNOVA] = {0};
-        uint32_t xTemp_Q2[lsq_SNOVA][v_SNOVA][lsq_SNOVA] = {0};
+        uint32_t xTemp_Q[lsq_SNOVA][v_SNOVA][lsq_SNOVA] = {0};
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                            xTemp_Q1[alpha][jdx][i1 * l_SNOVA + j1] ^=
+                            xTemp_Q[alpha][jdx][i1 * l_SNOVA + j1] ^=
                                 xVinegar_gf16[jdx][k1 * l_SNOVA + i1] * xQalpha1[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                        xTemp_Q1[alpha][jdx][i1 * l_SNOVA + j1] &= 0x49249249;
+                        xTemp_Q[alpha][jdx][i1 * l_SNOVA + j1] &= 0x49249249;
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
@@ -228,26 +271,27 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
                             xLeft[alpha * l_SNOVA * v_SNOVA * l_SNOVA + i1 * v_SNOVA * l_SNOVA + jdx * l_SNOVA + j1] ^=
-                                xAalpha[alpha * lsq_SNOVA + i1 * l_SNOVA + k1] * xTemp_Q1[alpha][jdx][k1 * l_SNOVA + j1];
+                                xAalpha[alpha * lsq_SNOVA + i1 * l_SNOVA + k1] * xTemp_Q[alpha][jdx][k1 * l_SNOVA + j1];
 
         for (int idx = 0; idx < v_SNOVA * lsq_SNOVA * lsq_SNOVA; ++idx)
             xLeft[idx] = gf16_reduce(xLeft[idx]);
 
         // Same for right
+        memset(xTemp_Q, 0, sizeof(xTemp_Q));
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                            xTemp_Q2[alpha][jdx][i1 * l_SNOVA + j1] ^=
+                            xTemp_Q[alpha][jdx][i1 * l_SNOVA + j1] ^=
                                 xQalpha2[alpha * lsq_SNOVA + i1 * l_SNOVA + k1] * xVinegar_gf16[jdx][k1 * l_SNOVA + j1];
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                        xTemp_Q2[alpha][jdx][i1 * l_SNOVA + j1] &= 0x49249249;
+                        xTemp_Q[alpha][jdx][i1 * l_SNOVA + j1] &= 0x49249249;
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
@@ -255,53 +299,62 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
                             xRight[alpha * l_SNOVA * v_SNOVA * l_SNOVA + j1 * v_SNOVA * l_SNOVA + jdx * l_SNOVA + i1] ^=
-                                xTemp_Q2[alpha][jdx][i1 * l_SNOVA + k1] * xBalpha[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
+                                xTemp_Q[alpha][jdx][i1 * l_SNOVA + k1] * xBalpha[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
 
         for (int idx = 0; idx < v_SNOVA * lsq_SNOVA * lsq_SNOVA; ++idx)
             xRight[idx] = gf16_reduce(xRight[idx]);
 
         // Main multiplication
+
         // V^2 * O * L^5
-        for (int mi_kdx_j1 = 0; mi_kdx_j1 < m_SNOVA * v_SNOVA * l_SNOVA; ++mi_kdx_j1)
-            for (int alpha_i1 = 0; alpha_i1 < lsq_SNOVA * l_SNOVA; ++alpha_i1)
-                for (int jdx_k1 = 0; jdx_k1 < v_SNOVA * l_SNOVA; ++jdx_k1)
-                    xtemp3[alpha_i1 * m_SNOVA * v_SNOVA * l_SNOVA + mi_kdx_j1] ^=
-                        xLeft[alpha_i1 * v_SNOVA * l_SNOVA + jdx_k1] * xF11[jdx_k1 * v_SNOVA * m_SNOVA * l_SNOVA + mi_kdx_j1];
-
-        for (int idx = 0; idx < lsq_SNOVA * l_SNOVA * m_SNOVA * v_SNOVA * l_SNOVA; ++idx)
-            xtemp3[idx] &= 0x49249249;
-
-        // V * O * L^5
         for (int mi = 0; mi < m_SNOVA; ++mi)
-            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+            for (int kdx = 0; kdx < v_SNOVA; kdx++)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+                {
+                    uint32_t xtemp3[lsq_SNOVA * l_SNOVA] = {0};
+
+                    for (int jdx = 0; jdx < v_SNOVA; jdx++)
+                        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                            xF11[jdx * l_SNOVA + k1] = gf16_from_nibble(F11[mi][jdx][kdx][k1 * l_SNOVA + j1]);
+
+                    for (int alpha_i1 = 0; alpha_i1 < lsq_SNOVA * l_SNOVA; ++alpha_i1)
                         for (int jdx_k1 = 0; jdx_k1 < v_SNOVA * l_SNOVA; ++jdx_k1)
-                            xFvv_in_GF16Matrix[mi][i1][j1] ^=
-                                xtemp3[alpha * m_SNOVA * v_SNOVA * l_SNOVA * l_SNOVA + i1 * m_SNOVA * v_SNOVA * l_SNOVA + mi * v_SNOVA * l_SNOVA + jdx_k1] *
-                                xRight[(alpha * l_SNOVA + j1) * v_SNOVA * l_SNOVA + jdx_k1];
+                            xtemp3[alpha_i1] ^= xLeft[alpha_i1 * v_SNOVA * l_SNOVA + jdx_k1] * xF11[jdx_k1];
+
+                    for (int idx = 0; idx < lsq_SNOVA * l_SNOVA; ++idx)
+                        xtemp3[idx] &= 0x49249249;
+
+                    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+                        for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                            for (int j2 = 0; j2 < l_SNOVA; ++j2)
+                                xFvv_in_GF16Matrix[mi][i1][j2] ^= xtemp3[alpha * l_SNOVA + i1] *
+                                                                  xRight[(alpha * l_SNOVA + j2) * v_SNOVA * l_SNOVA + kdx * l_SNOVA + j1];
+                }
 
         // compute the coefficients of Xo and put into Gauss matrix and compute
         // the coefficients of Xo^t and add into Gauss matrix
         //
-        // 2 * V * O^2 * L^5
-        for (int alpha_i1 = 0; alpha_i1 < lsq_SNOVA * l_SNOVA; ++alpha_i1)
-            for (int mi_kdx_j1 = 0; mi_kdx_j1 < m_SNOVA * o_SNOVA * l_SNOVA; ++mi_kdx_j1)
-                for (int jdk_k1 = 0; jdk_k1 < v_SNOVA * l_SNOVA; ++jdk_k1)
-                    xtemp_l[alpha_i1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_j1] ^=
-                        xLeft[alpha_i1 * v_SNOVA * l_SNOVA + jdk_k1] * xF12[jdk_k1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_j1];
+
+        for (int mi = 0; mi < m_SNOVA; mi++)
+            for (int kdx = 0; kdx < o_SNOVA; kdx++)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                {
+                    for (int jdx = 0; jdx < v_SNOVA; jdx++)
+                        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                            xF12[jdx * l_SNOVA + k1] =
+                                gf16_from_nibble(F12[mi][jdx][kdx][k1 * l_SNOVA + j1]);
+
+                    int mi_kdx_j1 = (mi * o_SNOVA + kdx) * l_SNOVA + j1;
+
+                    for (int alpha_i1 = 0; alpha_i1 < lsq_SNOVA * l_SNOVA; ++alpha_i1)
+                        for (int jdk_k1 = 0; jdk_k1 < v_SNOVA * l_SNOVA; ++jdk_k1)
+                            xtemp_int[alpha_i1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_j1] ^=
+                                xLeft[alpha_i1 * v_SNOVA * l_SNOVA + jdk_k1] *
+                                xF12[jdk_k1];
+                }
 
         for (int idx = 0; idx < lsq_SNOVA * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA; ++idx)
-            xtemp_l[idx] = gf16_reduce(xtemp_l[idx]);
-
-        for (int alpha_j1 = 0; alpha_j1 < lsq_SNOVA * l_SNOVA; ++alpha_j1)
-            for (int mi_kdx_i1 = 0; mi_kdx_i1 < m_SNOVA * o_SNOVA * l_SNOVA; ++mi_kdx_i1)
-                for (int jdk_k1 = 0; jdk_k1 < v_SNOVA * l_SNOVA; ++jdk_k1)
-                    xtemp_r[alpha_j1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_i1] ^=
-                        xRight[alpha_j1 * v_SNOVA * l_SNOVA + jdk_k1] * xF21[jdk_k1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_i1];
-
-        for (int idx = 0; idx < lsq_SNOVA * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA; ++idx)
-            xtemp_r[idx] = gf16_reduce(xtemp_r[idx]);
+            xtemp_int[idx] = gf16_reduce(xtemp_int[idx]);
 
         // Calculate Temp -> Gauss matrix
         // O^2 * L^5
@@ -311,8 +364,9 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                     for (int i1 = 0; i1 < l_SNOVA; ++i1)
                         for (int j1 = 0; j1 < l_SNOVA; ++j1)
                             for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                                xTemp_left[mi][kdx][alpha][i1 * l_SNOVA + j1] ^=
-                                    xtemp_l[alpha * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA + i1 * m_SNOVA * o_SNOVA * l_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + k1] *
+                                xTemp_lr[mi][kdx][alpha][i1 * l_SNOVA + j1] ^=
+                                    xtemp_int[alpha * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA + i1 * m_SNOVA * o_SNOVA * l_SNOVA +
+                                              mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + k1] *
                                     xQalpha2[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
 
         for (int mi = 0; mi < m_SNOVA; ++mi)
@@ -320,7 +374,7 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                 for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                     for (int i1 = 0; i1 < l_SNOVA; ++i1)
                         for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                            xTemp_left[mi][kdx][alpha][i1 * l_SNOVA + j1] &= 0x49249249;
+                            xTemp_lr[mi][kdx][alpha][i1 * l_SNOVA + j1] &= 0x49249249;
 
         // Outer product
         // O^2 * L^6
@@ -332,18 +386,43 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                             for (int i2 = 0; i2 < l_SNOVA; ++i2)
                                 for (int j2 = 0; j2 < l_SNOVA; ++j2)
                                     xTemp[mi][kdx][i1][j2][i2][j1] ^=
-                                        xTemp_left[mi][kdx][alpha][i1 * l_SNOVA + i2] * xBalpha[alpha * lsq_SNOVA + j2 * l_SNOVA + j1];
+                                        xTemp_lr[mi][kdx][alpha][i1 * l_SNOVA + i2] * xBalpha[alpha * lsq_SNOVA + j2 * l_SNOVA + j1];
 
         // Same for Right
         // O^2 * L^5
+        memset(xtemp_int, 0, sizeof(xtemp_int));
+        memset(xTemp_lr, 0, sizeof(xTemp_lr));
+
+        for (int mi = 0; mi < m_SNOVA; mi++)
+            for (int kdx = 0; kdx < o_SNOVA; kdx++)
+                for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                {
+                    for (int jdx = 0; jdx < v_SNOVA; jdx++)
+                        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                            xF21[jdx * l_SNOVA + k1] = gf16_from_nibble(F21[mi][kdx][jdx][i1 * l_SNOVA + k1]);
+
+                    int mi_kdx_i1 = (mi * o_SNOVA + kdx) * l_SNOVA + i1;
+
+                    for (int alpha_j1 = 0; alpha_j1 < lsq_SNOVA * l_SNOVA; ++alpha_j1)
+                        for (int jdk_k1 = 0; jdk_k1 < v_SNOVA * l_SNOVA; ++jdk_k1)
+                            xtemp_int[alpha_j1 * m_SNOVA * o_SNOVA * l_SNOVA + mi_kdx_i1] ^=
+                                xRight[alpha_j1 * v_SNOVA * l_SNOVA + jdk_k1] *
+                                xF21[jdk_k1];
+                }
+
+        for (int idx = 0; idx < lsq_SNOVA * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA; ++idx)
+            xtemp_int[idx] = gf16_reduce(xtemp_int[idx]);
+
         for (int mi = 0; mi < m_SNOVA; ++mi)
             for (int kdx = 0; kdx < o_SNOVA; ++kdx)
                 for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                     for (int i1 = 0; i1 < l_SNOVA; ++i1)
                         for (int j1 = 0; j1 < l_SNOVA; ++j1)
                             for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                                xTemp_right[mi][kdx][alpha][i1 * l_SNOVA + j1] ^=
-                                    xtemp_r[alpha * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA + j1 * m_SNOVA * o_SNOVA * l_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + k1] *
+                                xTemp_lr[mi][kdx][alpha][i1 * l_SNOVA + j1] ^=
+                                    xtemp_int[alpha * l_SNOVA * m_SNOVA * o_SNOVA * l_SNOVA +
+                                              j1 * m_SNOVA * o_SNOVA * l_SNOVA +
+                                              mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + k1] *
                                     xQalpha1[alpha * lsq_SNOVA + i1 * l_SNOVA + k1];
 
         for (int mi = 0; mi < m_SNOVA; ++mi)
@@ -351,7 +430,7 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                 for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                     for (int i1 = 0; i1 < l_SNOVA; ++i1)
                         for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                            xTemp_right[mi][kdx][alpha][i1 * l_SNOVA + j1] &= 0x49249249;
+                            xTemp_lr[mi][kdx][alpha][i1 * l_SNOVA + j1] &= 0x49249249;
 
         // Outer product
         // O^2 * L^6
@@ -363,7 +442,7 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                             for (int i2 = 0; i2 < l_SNOVA; ++i2)
                                 for (int j2 = 0; j2 < l_SNOVA; ++j2)
                                     xTemp[mi][kdx][i1][j2][i2][j1] ^=
-                                        xAalpha[alpha * lsq_SNOVA + i1 * l_SNOVA + j2] * xTemp_right[mi][kdx][alpha][i2 * l_SNOVA + j1];
+                                        xAalpha[alpha * lsq_SNOVA + i1 * l_SNOVA + j2] * xTemp_lr[mi][kdx][alpha][i2 * l_SNOVA + j1];
 
         // Compose Gauss matrix
         // put hash value in the last column of Gauss matrix
@@ -474,8 +553,6 @@ int verify_signture_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const u
     gf16m_t P22[m_SNOVA][o_SNOVA][o_SNOVA];
 
     map_group1 map1;
-    gf16m_t temp1, temp2;
-
     public_key *pk_stru = (public_key *)pk;
 
     Keccak_HashInstance hashInstance;
@@ -500,6 +577,7 @@ int verify_signture_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const u
     for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
         for (int index = 0; index < n_SNOVA; ++index)
         {
+            gf16m_t temp1, temp2;
             gf16m_transpose(signature_in_GF16Matrix[index], temp1);
             gf16m_mul(temp1, map1.Qalpha1[alpha], temp2);
             gf16m_mul(map1.Aalpha[alpha], temp2, Left[alpha][index]);
@@ -507,93 +585,88 @@ int verify_signture_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const u
             gf16m_mul(temp2, map1.Balpha[alpha], Right[alpha][index]);
         }
 
-    // Align Public and Intermediate to 256 bits
-    uint8_t Public[m_SNOVA][n_SNOVA][n_SNOVA][lsq_SNOVA];
-    uint32_t xPublic[m_SNOVA][n_SNOVA][lsq_SNOVA][((n_SNOVA + 7) / 8) * 8];
-    uint32_t Intermediate[m_SNOVA][lsq_SNOVA][lsq_SNOVA][((n_SNOVA + 7) / 8) * 8] = {0};
-    uint32_t xLeft[lsq_SNOVA][n_SNOVA][lsq_SNOVA];
-    uint32_t xRight[lsq_SNOVA][lsq_SNOVA][n_SNOVA];
     uint32_t res[m_SNOVA][lsq_SNOVA] = {0};
 
-    // Prepare Left and Right
-    for (int idx1 = 0; idx1 < lsq_SNOVA; idx1++)
-        for (int idx2 = 0; idx2 < n_SNOVA; idx2++)
-            for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+    // Main loop
+    for (int mi = 0; mi < m_SNOVA; ++mi)
+    {
+        uint32_t Intermediate[lsq_SNOVA][lsq_SNOVA][n_SNOVA] = {0};
+
+        for (int dj = 0; dj < n_SNOVA; ++dj)
+        {
+            uint32_t xPublic[lsq_SNOVA][n_SNOVA];
+            uint32_t xLeft[lsq_SNOVA][lsq_SNOVA];
+
+            if (dj < v_SNOVA)
             {
-                xLeft[idx1][idx2][idx] = gf16_from_nibble(Left[idx1][idx2][idx]);
-                xRight[idx1][idx][idx2] = gf16_from_nibble(Right[idx1][idx2][idx]);
+                for (int dk = 0; dk < v_SNOVA; dk++)
+                    for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+                        xPublic[idx][dk] = gf16_from_nibble(map1.P11[mi][dj][dk][idx]);
+
+                for (int dk = v_SNOVA; dk < n_SNOVA; dk++)
+                    for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+                        xPublic[idx][dk] = gf16_from_nibble(map1.P12[mi][dj][dk - v_SNOVA][idx]);
+            }
+            else
+            {
+                for (int dk = 0; dk < v_SNOVA; dk++)
+                    for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+                        xPublic[idx][dk] = gf16_from_nibble(map1.P21[mi][dj - v_SNOVA][dk][idx]);
+
+                for (int dk = v_SNOVA; dk < n_SNOVA; dk++)
+                    for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+                        xPublic[idx][dk] = gf16_from_nibble(P22[mi][dj - v_SNOVA][dk - v_SNOVA][idx]);
             }
 
-    // Prepare Public
-    for (int i = 0; i < m_SNOVA; ++i)
-    {
-        // Convert remaining map1 matrices and combine into one
-        for (int idx2 = 0; idx2 < v_SNOVA; idx2++)
-            for (int idx3 = 0; idx3 < v_SNOVA; idx3++)
+            for (int alpha = 0; alpha < lsq_SNOVA; alpha++)
                 for (size_t idx = 0; idx < lsq_SNOVA; idx++)
-                    Public[i][idx2][idx3][idx] = (map1.P11[i][idx2][idx3][idx]);
+                    xLeft[alpha][idx] = gf16_from_nibble(Left[alpha][dj][idx]);
 
-        for (int idx2 = 0; idx2 < v_SNOVA; idx2++)
-            for (int idx3 = v_SNOVA; idx3 < n_SNOVA; idx3++)
-                for (size_t idx = 0; idx < lsq_SNOVA; idx++)
-                    Public[i][idx2][idx3][idx] = (map1.P12[i][idx2][idx3 - v_SNOVA][idx]);
+            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+                        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                            for (int dk = 0; dk < n_SNOVA; ++dk)
+                                Intermediate[alpha][i1 * l_SNOVA + j1][dk] ^= xLeft[alpha][i1 * l_SNOVA + k1] *
+                                                                              xPublic[k1 * l_SNOVA + j1][dk];
+        }
 
-        for (int idx2 = v_SNOVA; idx2 < n_SNOVA; idx2++)
-            for (int idx3 = 0; idx3 < v_SNOVA; idx3++)
-                for (size_t idx = 0; idx < lsq_SNOVA; idx++)
-                    Public[i][idx2][idx3][idx] = (map1.P21[i][idx2 - v_SNOVA][idx3][idx]);
-
-        for (int idx2 = v_SNOVA; idx2 < n_SNOVA; idx2++)
-            for (int idx3 = v_SNOVA; idx3 < n_SNOVA; idx3++)
-                for (size_t idx = 0; idx < lsq_SNOVA; idx++)
-                    Public[i][idx2][idx3][idx] = (P22[i][idx2 - v_SNOVA][idx3 - v_SNOVA][idx]);
-    }
-
-    for (int i = 0; i < m_SNOVA; ++i)
-        for (int idx2 = 0; idx2 < n_SNOVA; idx2++)
-            for (size_t idx = 0; idx < lsq_SNOVA; idx++)
-                for (int idx3 = 0; idx3 < n_SNOVA; idx3++)
-                    xPublic[i][idx2][idx][idx3] = gf16_from_nibble(Public[i][idx2][idx3][idx]);
-
-    // Main loop
-    for (int i = 0; i < m_SNOVA; ++i)
-        for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-            for (int dj = 0; dj < n_SNOVA; ++dj)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int dk = 0; dk < n_SNOVA; ++dk)
-                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                            for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                                Intermediate[i][alpha][i1 * l_SNOVA + j1][dk] ^= xLeft[alpha][dj][i1 * l_SNOVA + k1] *
-                                                                                 xPublic[i][dj][k1 * l_SNOVA + j1][dk];
-
-    // Reduce for next multiplication
-    for (int i = 0; i < m_SNOVA; ++i)
+        // Reduce for next multiplication
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
                     for (int dk = 0; dk < n_SNOVA; ++dk)
-                        Intermediate[i][alpha][i1 * l_SNOVA + j1][dk] &= 0x49249249;
+                        Intermediate[alpha][i1 * l_SNOVA + j1][dk] &= 0x49249249;
 
-    // Second loop
-    for (int i = 0; i < m_SNOVA; ++i)
+        // Second loop
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+        {
+            uint32_t xRight[lsq_SNOVA][n_SNOVA];
+
+            for (int dk = 0; dk < n_SNOVA; dk++)
+                for (size_t idx = 0; idx < lsq_SNOVA; idx++)
+                    xRight[idx][dk] = gf16_from_nibble(Right[alpha][dk][idx]);
+
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
                     for (int k1 = 0; k1 < l_SNOVA; ++k1)
                         for (int dk = 0; dk < n_SNOVA; ++dk)
-                            res[i][i1 * l_SNOVA + j1] ^= Intermediate[i][alpha][i1 * l_SNOVA + k1][dk] *
-                                                         xRight[alpha][k1 * l_SNOVA + j1][dk];
+                            res[mi][i1 * l_SNOVA + j1] ^= Intermediate[alpha][i1 * l_SNOVA + k1][dk] *
+                                                          xRight[k1 * l_SNOVA + j1][dk];
+        }
+    }
 
     // Finish up
     for (int mi = 0; mi < m_SNOVA; ++mi)
         for (int i1 = 0; i1 < l_SNOVA; ++i1)
             for (int j1 = 0; j1 < l_SNOVA; ++j1)
                 ((gf16_t *)signature_in_GF16Matrix)[mi * lsq_SNOVA + i1 * l_SNOVA + j1] = gf16_to_nibble(res[mi][i1 * l_SNOVA + j1]);
+
     convert_GF16s_to_bytes(hash_in_bytes, (gf16_t *)signature_in_GF16Matrix, m_SNOVA * lsq_SNOVA);
 
     int result = 0;
-    for (int i = 0; i < bytes_hash; ++i)
-        if (hash_in_bytes[i] != signed_hash[i])
+    for (int idx = 0; idx < bytes_hash; ++idx)
+        if (hash_in_bytes[idx] != signed_hash[idx])
         {
             result = -1;
             break;

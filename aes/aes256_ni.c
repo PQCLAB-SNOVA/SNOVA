@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Public domain
 // Based on public domain code by Romain Dolbeau
 // http://dolbeau.name/dolbeau/crypto/crypto.html
-/* Adapted for SNOVA from OQS. */
 
-#if __AVX2__
 
 #include <assert.h>
 #include <stdint.h>
@@ -237,4 +235,3 @@ void oqs_aes256_ctr_enc_sch_ni(const uint8_t *iv, const size_t iv_len, const voi
 		memcpy(out, tmp, out_len);
 	}
 }
-#endif

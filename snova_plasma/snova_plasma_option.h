@@ -50,16 +50,25 @@
 // ---
 #elif OPTIMISATION == 1
 #define gen_F gen_F_opt
-#define gen_P22 gen_P22_ref
+#define gen_P22 gen_P22_opt
 #define sign_digest_core sign_digest_core_opt
 #define verify_core verify_signture_opt
-// ---
-#else
-#define gen_F gen_F_ref
-#define gen_P22 gen_P22_ref
-#define sign_digest_core sign_digest_core_ref
-#define verify_core verify_signture_ref
 
 #endif
+
+void snova_plasma_init() {
+    static int first_plasma_time = 1;
+    if (first_plasma_time) {
+		first_plasma_time = 0;
+#if OPTIMISATION == 2 && rank == 4
+        init_4x4();
+#elif OPTIMISATION == 2 && rank == 2
+        init_2x2();
+#elif OPTIMISATION == 2
+        init_avx_table();
+#endif
+    }
+}
+
 
 #endif

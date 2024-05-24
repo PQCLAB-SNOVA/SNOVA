@@ -24,7 +24,7 @@ void evaluation_2x2_avx2_vtl(map_group1_u16* restrict map1_u16, uint16_t* restri
 
     uint16_t Left_NL[n_SNOVA_mult4][lsq_SNOVA] __attribute__((aligned(32))) = {0};
     uint16_t Right_NL[n_SNOVA_mult4][lsq_SNOVA] __attribute__((aligned(32))) = {0};
-    uint16_t Public[m_SNOVA * n_SNOVA * n_SNOVA2] __attribute__((aligned(32)));
+    uint16_t Public[n_SNOVA * n_SNOVA2] __attribute__((aligned(32)));
 
     uint8_t Intermediate8[lsq_SNOVA * m_SNOVA_mult2 * n_SNOVA2 * l_SNOVA] __attribute__((aligned(32))) = {0};
     uint8_t Inter_shuffled[lsq_SNOVA * n_SNOVA * l_SNOVA * m_SNOVA32] __attribute__((aligned(32))) = {0};
@@ -88,49 +88,46 @@ void evaluation_2x2_avx2_vtl(map_group1_u16* restrict map1_u16, uint16_t* restri
     }
 
     // Prepare Public
-    for (int mi = 0; mi < m_SNOVA; ++mi)
+    for (int mi = 0; mi < m_SNOVA; ++mi) {
         for (int dj = 0; dj < v_SNOVA; dj++)
             for (int dk = 0; dk < v_SNOVA; dk += 16)
-                _mm256_storeu_si256((__m256i *)&Public[mi * n_SNOVA * n_SNOVA2 + dj * n_SNOVA2 + dk],
+                _mm256_storeu_si256((__m256i *)&Public[dj * n_SNOVA2 + dk],
                     _mm256_loadu_si256((__m256i *)&map1_u16->P11[mi][dj][dk]));
 
-    for (int mi = 0; mi < m_SNOVA; ++mi)
         for (int dj = 0; dj < v_SNOVA; dj++)
             for (int dk = v_SNOVA; dk < n_SNOVA; dk++)
-                Public[mi * n_SNOVA * n_SNOVA2 + dj * n_SNOVA2 + dk] = map1_u16->P12[mi][dj][dk - v_SNOVA];
+                Public[dj * n_SNOVA2 + dk] = map1_u16->P12[mi][dj][dk - v_SNOVA];
 
-    for (int mi = 0; mi < m_SNOVA; ++mi)
         for (int dj = v_SNOVA; dj < n_SNOVA; dj++)
             for (int dk = 0; dk < v_SNOVA; dk += 16)
-                _mm256_storeu_si256((__m256i *)&Public[mi * n_SNOVA * n_SNOVA2 + dj * n_SNOVA2 + dk],
+                _mm256_storeu_si256((__m256i *)&Public[dj * n_SNOVA2 + dk],
                     _mm256_loadu_si256((__m256i *)&map1_u16->P21[mi][dj - v_SNOVA][dk]));
 
-    for (int mi = 0; mi < m_SNOVA; ++mi)
         for (int dj = v_SNOVA; dj < n_SNOVA; dj++)
             for (int dk = v_SNOVA; dk < n_SNOVA; dk++)
-                Public[mi * n_SNOVA * n_SNOVA2 + dj * n_SNOVA2 + dk] = P22[((mi * o_SNOVA + dj - v_SNOVA) * o_SNOVA + dk - v_SNOVA)];
+                Public[dj * n_SNOVA2 + dk] = P22[((mi * o_SNOVA + dj - v_SNOVA) * o_SNOVA + dk - v_SNOVA)];
 
-    // Transpose at 2x2 level
-    for (int idx = 0; idx < m_SNOVA * n_SNOVA * n_SNOVA16; idx++)
-    {
-        __m256i pub_0 = Public256[idx];
-        Public256[idx] = (pub_0 & mask_0) ^ (_mm256_slli_epi64(pub_0, 4) & mask_1) ^ _mm256_srli_epi64(pub_0 & mask_1, 4);
-    }
+        // Transpose at 2x2 level
+        for (int idx = 0; idx < n_SNOVA * n_SNOVA16; idx++)
+        {
+            __m256i pub_0 = Public256[idx];
+            Public256[idx] = (pub_0 & mask_0) ^ (_mm256_slli_epi64(pub_0, 4) & mask_1) ^ _mm256_srli_epi64(pub_0 & mask_1, 4);
+        }
 
-    // Main loop
-    for (int dj = 0; dj < n_SNOVA; ++dj)
-        for (int mi = 0; mi < m_SNOVA; ++mi)
+        // Main loop
+        for (int dj = 0; dj < n_SNOVA; ++dj)
             for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                 for (int dk_j1 = 0; dk_j1 < n_SNOVA16; dk_j1 ++)
                 {
                     __m256i k_lh0 = mtk2_16[Left_NL[dj][alpha] & 0xff];
                     __m256i k_lh1 = mtk2_16[(Left_NL[dj][alpha] >> 8) & 0xff];
-                    __m256i pubval = *(__m256i *)&Public[(mi * n_SNOVA + dj) * n_SNOVA2 + 16 * dk_j1];
+                    __m256i pubval = *(__m256i *)&Public[dj * n_SNOVA2 + 16 * dk_j1];
 
                     Intermediate256[mi * lsq_SNOVA * n_SNOVA16 + alpha * n_SNOVA16 + dk_j1] ^=
                         _mm256_shuffle_epi8(k_lh0, pubval & l_mask) ^
                         _mm256_shuffle_epi8(k_lh1, _mm256_srli_epi16(pubval, 4) & l_mask);
                 }
+    }
 
     for (int dk = 0; dk < n_SNOVA; ++dk)
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)

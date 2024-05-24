@@ -164,5 +164,8 @@ typings/
 # FuseBox cache
 .fusebox/
 
+out
+out0525
+
 *.req
 *.rsp
