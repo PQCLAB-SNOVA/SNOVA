@@ -53,9 +53,7 @@ int main() {
 	printf("------------------------------------------------\n");
 	printf("SNOVA params:\t\t\n");
     printf("(V, O, L) =\t\t(%d, %d, %d)\n", v_SNOVA, o_SNOVA, l_SNOVA);
-#if PK_EXPAND_VEXOF
-	printf("PK_EXPAND =\t\tPK_EXPAND_VEXOF\n");
-#elif PK_EXPAND_SHAKE
+#if PK_EXPAND_SHAKE
 	printf("PK_EXPAND =\t\tPK_EXPAND_SHAKE\n");
 #else
 	printf("PK_EXPAND =\t\tAES\n");

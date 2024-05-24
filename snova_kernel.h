@@ -111,12 +111,11 @@ void hash_aes128(const uint8_t* pt_seed_array, uint8_t* pt_output_array) {
 /**
  * pk expand from seed
  */
-#if PK_EXPAND_VEXOF
-#include "vexof/vexof.h"
+#if PK_EXPAND_SHAKE
 void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {
-    uint64_t vexof_array[(bytes_prng_public + 7) / 8];
-    vexof(pt_public_key_seed, 16, vexof_array, 8 * ((bytes_prng_public + 7) / 8));
-    memcpy(out_pk, vexof_array, bytes_prng_public);
+    uint64_t shake_bytes[(bytes_prng_public + 7) / 8];
+    snova_shake(pt_public_key_seed, 16, shake_bytes, 8 * ((bytes_prng_public + 7) / 8));
+    memcpy(out_pk, shake_bytes, bytes_prng_public);
 }
 #else
 void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {

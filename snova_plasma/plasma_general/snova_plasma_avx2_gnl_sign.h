@@ -339,7 +339,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
             for (int k1 = 0; k1 < l_SNOVA; ++k1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
                 {
-                    __m256i k_lh = vtl_multtab(Qalpha2[alpha][k1 * l_SNOVA + j1]);
+                    __m256i k_lh = mtk2_16[Qalpha2[alpha][k1 * l_SNOVA + j1]];
                     for (int mi_kdx_i1 = 0; mi_kdx_i1 < mol_SNOVA32; mi_kdx_i1++)
                         res_left256[(alpha * l_SNOVA + j1) * mol_SNOVA32 + mi_kdx_i1] ^=
                             _mm256_shuffle_epi8(k_lh, temp_left256[(alpha * l_SNOVA + k1) * mol_SNOVA32 + mi_kdx_i1]);
@@ -350,7 +350,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
             for (int j1 = 0; j1 < l_SNOVA; ++j1)
                 for (int j2 = 0; j2 < l_SNOVA; ++j2)
                 {
-                    __m256i k_lh = vtl_multtab(Balpha[alpha][j2 * l_SNOVA + j1]);
+                    __m256i k_lh = mtk2_16[Balpha[alpha][j2 * l_SNOVA + j1]];
                     for (int i2_mi_kdx_i1 = 0; i2_mi_kdx_i1 < l_SNOVA * mol_SNOVA32; i2_mi_kdx_i1++)
                         gtemp256[(j2 * l_SNOVA + j1) * l_SNOVA * mol_SNOVA32 + i2_mi_kdx_i1] ^=
                             _mm256_shuffle_epi8(k_lh, res_left256[alpha * l_SNOVA * mol_SNOVA32 + i2_mi_kdx_i1]);
@@ -383,7 +383,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
             for (int k1 = 0; k1 < l_SNOVA; ++k1)
                 for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 {
-                    __m256i k_lh = vtl_multtab(Qalpha1[alpha][i1 * l_SNOVA + k1]);
+                    __m256i k_lh = mtk2_16[Qalpha1[alpha][i1 * l_SNOVA + k1]];
                     for (int mi_kdx_j1 = 0; mi_kdx_j1 < mol_SNOVA32; mi_kdx_j1++)
                         res_right256[(alpha * l_SNOVA + i1) * mol_SNOVA32 + mi_kdx_j1] ^=
                             _mm256_shuffle_epi8(k_lh, temp_right256[(alpha * l_SNOVA + k1) * mol_SNOVA32 + mi_kdx_j1]);
@@ -394,7 +394,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int j2 = 0; j2 < l_SNOVA; ++j2)
                 {
-                    __m256i k_lh = vtl_multtab(Aalpha[alpha][i1 * l_SNOVA + j2]);
+                    __m256i k_lh = mtk2_16[Aalpha[alpha][i1 * l_SNOVA + j2]];
                     for (int i2_mi_kdx_j1 = 0; i2_mi_kdx_j1 < l_SNOVA * mol_SNOVA32; i2_mi_kdx_j1++)
                         gtemp256[(j2 * l_SNOVA + i1) * l_SNOVA * mol_SNOVA32 + i2_mi_kdx_j1] ^=
                             _mm256_shuffle_epi8(k_lh, res_right256[alpha * l_SNOVA * mol_SNOVA32 + i2_mi_kdx_j1]);

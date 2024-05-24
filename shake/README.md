@@ -1,3 +1,13 @@
+# Vectorized SHAKE XOF
+
+This folder contains an implementation of SHAKE128 CTR-XOF in snova_shake.c.
+
+The implementation can be tested using the provided test, e.g.
+```
+gcc -march=native -DTEST_SNOVA_SHAKE snova_shake.c ../shake/KeccakHash.c ../shake/SimpleFIPS202.c ../shake/KeccakP-1600-opt64.c ../shake/KeccakSponge.c ../shake/KeccakP-1600-times4-SIMD256.c -o test
+./test
+```
+
 # XKCP source code
 
 The distribution includes a copy of XKCP as source code. It was retrieved using:

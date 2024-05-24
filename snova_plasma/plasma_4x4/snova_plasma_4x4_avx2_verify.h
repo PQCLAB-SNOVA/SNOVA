@@ -126,11 +126,10 @@ void evaluation_4x4_avx2_vtl(map_group1_u64* restrict map1_u64, uint64_t* restri
     }
 
     uint64_t P_u64_temp[n_SNOVA_mult4] __attribute__((aligned(32))) = {0};
-    uint8_t Public[m_SNOVA][n_SNOVA][n_SNOVA_mult4][sq_rank / 2] __attribute__((aligned(32)));
+    uint8_t Public[n_SNOVA_mult4][sq_rank / 2] __attribute__((aligned(32)));
 
-    __m256i tl[m_SNOVA][n_SNOVA][l_SNOVA] __attribute__((aligned(32)));
-    __m256i tl0[m_SNOVA][n_SNOVA][l_SNOVA] __attribute__((aligned(32)));
-    __m256i tl0_cross[m_SNOVA][n_SNOVA][l_SNOVA] __attribute__((aligned(32))) = {0};
+    __m256i tl[l_SNOVA] __attribute__((aligned(32)));
+    __m256i tl0[l_SNOVA] __attribute__((aligned(32)));
 
     __m256i shf_pub = _mm256_setr_epi8(0, 2, 1, 3, 4, 6, 5, 7, 8, 10, 9, 11, 12, 14, 13, 15,  //
                                        0, 2, 1, 3, 4, 6, 5, 7, 8, 10, 9, 11, 12, 14, 13, 15);
@@ -138,6 +137,8 @@ void evaluation_4x4_avx2_vtl(map_group1_u64* restrict map1_u64, uint64_t* restri
     __m256i mask_1 = _mm256_set1_epi64x(0x0f000f000f000f00ull);
 
     for (int mi = 0; mi < m_SNOVA; ++mi) {
+        __m256i sum = _mm256_setzero_si256();
+
         for (int nj = 0; nj < v_SNOVA; ++nj) {
             for (int nk = 0; nk < v_SNOVA; ++nk) {
                 P_u64_temp[nk] = map1_u64->P11[mi][nj][nk];
@@ -150,8 +151,30 @@ void evaluation_4x4_avx2_vtl(map_group1_u64* restrict map1_u64, uint64_t* restri
                 __m256i pub256 = _mm256_setr_epi64x(P_u64_temp[nk], P_u64_temp[nk + 1], P_u64_temp[nk + 2], P_u64_temp[nk + 3]);
                 __m256i pub_0 = _mm256_shuffle_epi8(pub256, shf_pub);
                 _mm256_store_si256(
-                    (__m256i*)Public[mi][nj][nk],  //
+                    (__m256i*)Public[nk],  //
                     (pub_0 & mask_0) ^ (_mm256_slli_epi64(pub_0, 4) & mask_1) ^ _mm256_srli_epi64(pub_0 & mask_1, 4));
+            }
+
+            __m256i tl0_cross[l_SNOVA] __attribute__((aligned(32))) = {0};
+
+            for (int nk = 0; nk < n_SNOVA; ++nk) {
+                for (int i = 0; i < 2; i++) {
+                    for (int j = 0; j < 4; j++) {
+                        __m256i k_lh = mtk2_16[Public[nk][i * 4 + j]];
+                        tl0_cross[i * 2] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][0]);
+                        tl0_cross[i * 2 + 1] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][1]);
+                    }
+                }
+            }
+
+            tl0[0] = (tl0_cross[0] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[1], 4) & h_mask);
+            tl0[1] = (_mm256_srli_epi16(tl0_cross[0], 4) & l_mask) ^ (tl0_cross[1] & h_mask);
+            tl0[2] = (tl0_cross[2] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[3], 4) & h_mask);
+            tl0[3] = (_mm256_srli_epi16(tl0_cross[2], 4) & l_mask) ^ (tl0_cross[3] & h_mask);
+
+            convert_16x4_to_4x4x4(tl, tl0);
+            for (int alpha = 0; alpha < l_SNOVA; alpha++) {
+                gf16m_256_mul_4x4_4way_44_add(Left_256[nj][alpha], tl[alpha], &sum);
             }
         }
 
@@ -167,50 +190,34 @@ void evaluation_4x4_avx2_vtl(map_group1_u64* restrict map1_u64, uint64_t* restri
                 __m256i pub256 = _mm256_setr_epi64x(P_u64_temp[nk], P_u64_temp[nk + 1], P_u64_temp[nk + 2], P_u64_temp[nk + 3]);
                 __m256i pub_0 = _mm256_shuffle_epi8(pub256, shf_pub);
                 _mm256_store_si256(
-                    (__m256i*)Public[mi][nj][nk],  //
+                    (__m256i*)Public[nk],  //
                     (pub_0 & mask_0) ^ (_mm256_slli_epi64(pub_0, 4) & mask_1) ^ _mm256_srli_epi64(pub_0 & mask_1, 4));
             }
-        }
-    }
 
-    for (int mi = 0; mi < m_SNOVA; ++mi) {
-        for (int nj = 0; nj < n_SNOVA; ++nj) {
+            __m256i tl0_cross[l_SNOVA] __attribute__((aligned(32))) = {0};
+
             for (int nk = 0; nk < n_SNOVA; ++nk) {
                 for (int i = 0; i < 2; i++) {
                     for (int j = 0; j < 4; j++) {
-                        __m256i k_lh = mtk2_16[Public[mi][nj][nk][i * 4 + j]];
-                        tl0_cross[mi][nj][i * 2] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][0]);
-                        tl0_cross[mi][nj][i * 2 + 1] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][1]);
+                        __m256i k_lh = mtk2_16[Public[nk][i * 4 + j]];
+                        tl0_cross[i * 2] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][0]);
+                        tl0_cross[i * 2 + 1] ^= _mm256_shuffle_epi8(k_lh, Right_256_lh[nk][j][1]);
                     }
                 }
             }
-        }
-    }
 
-    for (int mi = 0; mi < m_SNOVA; ++mi) {
-        for (int nj = 0; nj < n_SNOVA; ++nj) {
-            tl0[mi][nj][0] = (tl0_cross[mi][nj][0] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[mi][nj][1], 4) & h_mask);
-            tl0[mi][nj][1] = (_mm256_srli_epi16(tl0_cross[mi][nj][0], 4) & l_mask) ^ (tl0_cross[mi][nj][1] & h_mask);
-            tl0[mi][nj][2] = (tl0_cross[mi][nj][2] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[mi][nj][3], 4) & h_mask);
-            tl0[mi][nj][3] = (_mm256_srli_epi16(tl0_cross[mi][nj][2], 4) & l_mask) ^ (tl0_cross[mi][nj][3] & h_mask);
-        }
-    }
+            tl0[0] = (tl0_cross[0] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[1], 4) & h_mask);
+            tl0[1] = (_mm256_srli_epi16(tl0_cross[0], 4) & l_mask) ^ (tl0_cross[1] & h_mask);
+            tl0[2] = (tl0_cross[2] & l_mask) ^ (_mm256_slli_epi16(tl0_cross[3], 4) & h_mask);
+            tl0[3] = (_mm256_srli_epi16(tl0_cross[2], 4) & l_mask) ^ (tl0_cross[3] & h_mask);
 
-    for (int mi = 0; mi < m_SNOVA; ++mi) {
-        for (int nj = 0; nj < n_SNOVA; ++nj) {
-            convert_16x4_to_4x4x4(tl[mi][nj], tl0[mi][nj]);
-        }
-    }
-
-    for (int i = 0; i < m_SNOVA; ++i) {
-        __m256i sum = _mm256_setzero_si256();
-        for (int nj = 0; nj < n_SNOVA; ++nj) {
+            convert_16x4_to_4x4x4(tl, tl0);
             for (int alpha = 0; alpha < l_SNOVA; alpha++) {
-                gf16m_256_mul_4x4_4way_44_add(Left_256[nj][alpha], tl[i][nj][alpha], &sum);
+                gf16m_256_mul_4x4_4way_44_add(Left_256[nj][alpha], tl[alpha], &sum);
             }
         }
-        hash_in_GF16Matrix_u64[i] = _mm256_extract_epi64(sum, 0) ^ _mm256_extract_epi64(sum, 1) ^  //
-                                    _mm256_extract_epi64(sum, 2) ^ _mm256_extract_epi64(sum, 3);   //
+        hash_in_GF16Matrix_u64[mi] = _mm256_extract_epi64(sum, 0) ^ _mm256_extract_epi64(sum, 1) ^  //
+                                     _mm256_extract_epi64(sum, 2) ^ _mm256_extract_epi64(sum, 3);   //
     }
 }
 

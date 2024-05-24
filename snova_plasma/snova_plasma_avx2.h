@@ -3,18 +3,8 @@
 
 #include "../gf16.h"
 
-// vtl_multab as function (constant time) or as lookup table (faster)
-#ifndef CONSTANT_TIME
-#define CONSTANT_TIME 0
-#endif
-
-#if CONSTANT_TIME
-#define vtl_multtab(x) (vtl_ct_multtab(x))
-#define vtl_multtab2(x) (vtl_ct_multtab2(x))
-#else
-#define vtl_multtab(x) (mtk2_16[x])
-#define vtl_multtab2(x) (mtk2_16[x])
-#endif
+static uint8_t mt4b2_16[256][32] __attribute__((aligned(512)));
+__m256i* mtk2_16 = (__m256i*)mt4b2_16;
 
 // t^1 table
 static uint8_t m2L[32] __attribute__((aligned(32))) = {0};
@@ -28,17 +18,12 @@ static uint8_t m4H[32] __attribute__((aligned(32))) = {0};
 static uint8_t m8L[32] __attribute__((aligned(32))) = {0};
 static uint8_t m8H[32] __attribute__((aligned(32))) = {0};
 
-static uint8_t mt4b2_16[256][32] __attribute__((aligned(32)));
-__m256i* mtk2_16 = (__m256i*)mt4b2_16;
-
 // inverse table, runs in constant time
 static __m256i avx_inv_table = {0};
 
 // Table used by vtl_ct_multtab
 static __m256i vtl_multmask1, vtl_multmask2, vtl_multmask4, vtl_multmask8;
-static __m256i vtl_multmask16, vtl_multmask32, vtl_multmask64, vtl_multmask128;
 static __m256i vtl_mult_table1, vtl_mult_table2, vtl_mult_table4, vtl_mult_table8;
-static __m256i vtl_mult_table16, vtl_mult_table32, vtl_mult_table64, vtl_mult_table128;
 static __m256i zero256 = {0};
 
 int init_avx_table() {
@@ -76,19 +61,11 @@ int init_avx_table() {
     vtl_multmask2 = _mm256_set1_epi32(2);
     vtl_multmask4 = _mm256_set1_epi32(4);
     vtl_multmask8 = _mm256_set1_epi32(8);
-    vtl_multmask16 = _mm256_set1_epi32(16);
-    vtl_multmask32 = _mm256_set1_epi32(32);
-    vtl_multmask64 = _mm256_set1_epi32(64);
-    vtl_multmask128 = _mm256_set1_epi32(128);
 
     vtl_mult_table1 = mtk2_16[1];
     vtl_mult_table2 = mtk2_16[2];
     vtl_mult_table4 = mtk2_16[4];
     vtl_mult_table8 = mtk2_16[8];
-    vtl_mult_table16 = mtk2_16[16];
-    vtl_mult_table32 = mtk2_16[32];
-    vtl_mult_table64 = mtk2_16[64];
-    vtl_mult_table128 = mtk2_16[128];
 
     // GF16 inverse table
     avx_inv_table = _mm256_setr_epi8(0, 1, 9, 14, 13, 11, 7, 6, 15, 2, 12, 5, 10, 4, 3, 8,
@@ -96,6 +73,9 @@ int init_avx_table() {
 
     return 1;
 }
+
+// Non-constant time VTL table
+#define vtl_multtab(val) (mtk2_16[val])
 
 // Constant time VTL table
 static inline __m256i vtl_ct_multtab(uint8_t val)
@@ -106,20 +86,6 @@ static inline __m256i vtl_ct_multtab(uint8_t val)
            (vtl_mult_table2 & _mm256_cmpgt_epi32(val256 & vtl_multmask2, zero256)) ^
            (vtl_mult_table4 & _mm256_cmpgt_epi32(val256 & vtl_multmask4, zero256)) ^
            (vtl_mult_table8 & _mm256_cmpgt_epi32(val256 & vtl_multmask8, zero256));
-}
-
-static inline __m256i vtl_ct_multtab2(uint8_t val)
-{
-    __m256i val256 = _mm256_set1_epi32(val);
-
-    return (vtl_mult_table1 & _mm256_cmpgt_epi32(val256 & vtl_multmask1, zero256)) ^
-           (vtl_mult_table2 & _mm256_cmpgt_epi32(val256 & vtl_multmask2, zero256)) ^
-           (vtl_mult_table4 & _mm256_cmpgt_epi32(val256 & vtl_multmask4, zero256)) ^
-           (vtl_mult_table8 & _mm256_cmpgt_epi32(val256 & vtl_multmask8, zero256)) ^
-           (vtl_mult_table16 & _mm256_cmpgt_epi32(val256 & vtl_multmask16, zero256)) ^
-           (vtl_mult_table32 & _mm256_cmpgt_epi32(val256 & vtl_multmask32, zero256)) ^
-           (vtl_mult_table64 & _mm256_cmpgt_epi32(val256 & vtl_multmask64, zero256)) ^
-           (vtl_mult_table128 & _mm256_cmpgt_epi32(val256 & vtl_multmask128, zero256));
 }
 
 // return a * t^1
@@ -163,19 +129,13 @@ static inline __m256i mul8_avx_r_half(__m256i a) {
 
 static inline void gf16_32_mul_k(gf16_t* a, gf16_t k, gf16_t* ak) {
     __m256i a_256 = *((__m256i*)a);
-	*((__m256i*)ak) = _mm256_shuffle_epi8(vtl_multtab(k), a_256);
+	*((__m256i*)ak) = _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
 }
 
 static inline void gf16_32_mul_k_add(gf16_t*  a, gf16_t k, gf16_t*  ak) {
     __m256i a_256 = *((__m256i*)a);
-	*((__m256i*)ak) ^= _mm256_shuffle_epi8(vtl_multtab(k), a_256);
+	*((__m256i*)ak) ^= _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
 }
-
-static inline void gf16_64_mul_k_add(__m256i* a, gf16_t k, __m256i*  ak) {
-	ak[0] ^= _mm256_shuffle_epi8(vtl_multtab(k), a[0]);
-	ak[1] ^= _mm256_shuffle_epi8(vtl_multtab(k), a[1]);
-}
-
 
 static inline void gf16_32_mul_32(gf16_t*  a, gf16_t*  b, gf16_t*  c) {
     __m256i a_256 = *((__m256i*)a);
@@ -244,7 +204,7 @@ void gen_P22_vtl(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22)
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int k1 = 0; k1 < l_SNOVA; ++k1)
                 {
-                    __m256i k_lh = vtl_multtab(T12[di][dj][i1 * l_SNOVA + k1]);
+                    __m256i k_lh = vtl_ct_multtab(T12[di][dj][i1 * l_SNOVA + k1]);
 
                     for (int mi_dk_j1 = 0; mi_dk_j1 < mol_SNOVA32; mi_dk_j1++)
                         temp1_256[(dj * l_SNOVA + i1) * mol_SNOVA32 + mi_dk_j1] ^=
@@ -278,7 +238,7 @@ void gen_P22_vtl(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22)
             for (int k1 = 0; k1 < l_SNOVA; ++k1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
                 {
-                    __m256i k_lh = vtl_multtab(T12[di][dk][k1 * l_SNOVA + j1]);
+                    __m256i k_lh = vtl_ct_multtab(T12[di][dk][k1 * l_SNOVA + j1]);
 
                     for (int mi_dj_i1 = 0; mi_dj_i1 < mol_SNOVA32; mi_dj_i1++)
                         temp2_256[(dk * l_SNOVA + j1) * mol_SNOVA32 + mi_dj_i1] ^=
@@ -342,7 +302,7 @@ void gen_F_vtl(map_group2 *map2, map_group1 *map1, T12_t T12)
     for (int dj_j1 = 0; dj_j1 < o_SNOVA * l_SNOVA; ++dj_j1)
         for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
         {
-            __m256i k_lh = vtl_multtab(t12_8[dk_k1 * o_SNOVA * l_SNOVA + dj_j1]);
+            __m256i k_lh = vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA * l_SNOVA + dj_j1]);
             for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
                 res256[dj_j1 * mvl_SNOVA32 + mi_di_i1] ^= _mm256_shuffle_epi8(k_lh, p11_256[dk_k1 * mvl_SNOVA32 + mi_di_i1]);
         }
@@ -375,7 +335,7 @@ void gen_F_vtl(map_group2 *map2, map_group1 *map1, T12_t T12)
     for (int dj_j1 = 0; dj_j1 < o_SNOVA * l_SNOVA; ++dj_j1)
         for (int dk_k1 = 0; dk_k1 < v_SNOVA * l_SNOVA; ++dk_k1)
         {
-            __m256i k_lh = vtl_multtab(t12_8[dk_k1 * o_SNOVA * l_SNOVA + dj_j1]);
+            __m256i k_lh = vtl_ct_multtab(t12_8[dk_k1 * o_SNOVA * l_SNOVA + dj_j1]);
             for (int mi_di_i1 = 0; mi_di_i1 < mvl_SNOVA32; mi_di_i1++)
                 res256[dj_j1 * mvl_SNOVA32 + mi_di_i1] ^= _mm256_shuffle_epi8(k_lh, p11_256[dk_k1 * mvl_SNOVA32 + mi_di_i1]);
         }
