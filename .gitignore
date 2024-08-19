@@ -164,8 +164,11 @@ typings/
 # FuseBox cache
 .fusebox/
 
-out
-out0525
-
+# custom
 *.req
 *.rsp
+
+*.js
+*.wasm
+*.tmp
+

@@ -25,7 +25,6 @@ typedef struct {
     Qalpha2_t Qalpha2;
 } map_group1;
 
-#define map_group1_byte (m_SNOVA * v_SNOVA * v_SNOVA + m_SNOVA * v_SNOVA * o_SNOVA + m_SNOVA * o_SNOVA * v_SNOVA + lsq_SNOVA + lsq_SNOVA + lsq_SNOVA + lsq_SNOVA) * 16
 
 typedef gf16m_t T12_t[v_SNOVA][o_SNOVA];
 typedef gf16m_t F11_t[m_SNOVA][v_SNOVA][v_SNOVA];
@@ -74,14 +73,16 @@ extern "C" {
 void shake256(const uint8_t* pt_seed_array, int input_bytes, uint8_t* pt_output_array,
               int output_bytes);
 
-void snova_init();
+void snova_init(void);
 
-void generate_keys_ssk(const uint8_t* pkseed, const uint8_t* skseed,
-                       uint8_t* pk, uint8_t* ssk);
-void generate_keys_esk(const uint8_t* pkseed, const uint8_t* skseed,
-                       uint8_t* pk, uint8_t* esk);
+void generate_keys_ssk(uint8_t* pk, uint8_t* ssk,
+                       const uint8_t* pkseed, const uint8_t* skseed);
+void generate_keys_esk(uint8_t* pk, uint8_t* esk,
+                       const uint8_t* pkseed, const uint8_t* skseed);
 
-void create_salt(uint8_t* array_salt);
+void generate_pk_with_ssk(uint8_t* pk, const uint8_t* ssk);
+
+void generate_pk_with_esk(uint8_t* pk, const uint8_t* esk);
 
 void sign_digest_ssk(uint8_t* pt_signature, const uint8_t* digest,
                      uint64_t bytes_digest, uint8_t* array_salt,

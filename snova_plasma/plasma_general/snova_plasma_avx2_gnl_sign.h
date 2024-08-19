@@ -6,12 +6,10 @@
 #define PLASMA_GNL_AVX2_SIGN_H
 
 #include <immintrin.h>
+#include <stdint.h>
 
 #define mvl_SNOVA32 ((m_SNOVA * v_SNOVA * l_SNOVA + 31) / 32)
 #define mvl_SNOVA (mvl_SNOVA32 * 32)
-
-// #define mol_SNOVA32 ((m_SNOVA * o_SNOVA * l_SNOVA + 31) / 32)
-// #define mol_SNOVA (mol_SNOVA32 * 32)
 
 #define ml_SNOVA32 ((m_SNOVA * l_SNOVA + 31) / 32)
 #define ml_SNOVA (ml_SNOVA32 * 32)
@@ -22,7 +20,8 @@
 #define vl4_SNOVA32 ((vl_SNOVA * lcube_SNOVA + 31) / 32)
 
 #define GAUSS_ROW (m_SNOVA * lsq_SNOVA + 1)
-#define GAUSS_ROW32 ((GAUSS_ROW + 31) / 32 * 32)
+#define GAUSS_ROW32 ((GAUSS_ROW + 31) / 32)
+#define GAUSS_ROW_mult32 (GAUSS_ROW32 * 32)
 #define GAUSS_COL (m_SNOVA * lsq_SNOVA)
 #define GAUSS_COL32 ((GAUSS_COL + 31) / 32 * 32)
 
@@ -30,36 +29,6 @@
 #define v_SNOVA_mult4 ((v_SNOVA + 3) / 4 * 4)
 #endif
 
-// GF[x]/(x^4+x+1) reduction
-static inline uint32_t xgf16_reduce(uint32_t idx)
-{
-    uint32_t res, upper;
-
-    res = idx & 0x49249249; // Octal 0o11111111111
-    upper = idx >> 12;
-    res = res ^ upper ^ (upper << 3);
-    upper = res >> 12;
-    res = res ^ upper ^ (upper << 3);
-    upper = res >> 12;
-    res = res ^ upper ^ (upper << 3);
-
-    return res & 0x249;
-}
-
-// Conversion 4 bit -> 32 bit representation
-static inline uint32_t xgf16_from_nibble(uint8_t idx)
-{
-    uint32_t middle = idx | idx << 4;
-    return (middle & 0x41) | ((middle << 2) & 0x208);
-}
-
-// Conversion 32 bit -> 4 bit representation
-static inline uint8_t xgf16_to_nibble(uint32_t idx)
-{
-    uint32_t res = xgf16_reduce(idx);
-    res = res | (res >> 4);
-    return (res & 0x5) | ((res >> 2) & 0xa);
-}
 
 /**
  * Computes signature
@@ -86,7 +55,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
     // Prepare
 
-    uint8_t Gauss[m_SNOVA * lsq_SNOVA][GAUSS_ROW32] __attribute__((aligned(32)));
+    uint8_t Gauss[m_SNOVA * lsq_SNOVA][GAUSS_ROW_mult32] __attribute__((aligned(32)));
 
     __m256i f11_256[mvl_SNOVA32 * vl_SNOVA] = {0};
     __m256i f12_256[mol_SNOVA32 * vl_SNOVA] = {0};
@@ -104,24 +73,24 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
     for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
         for (int idx = 0; idx < lsq_SNOVA; ++idx)
         {
-            xQalpha1[alpha * lsq_SNOVA + idx] = xgf16_from_nibble(Qalpha1[alpha][idx]);
-            xQalpha2[alpha * lsq_SNOVA + idx] = xgf16_from_nibble(Qalpha2[alpha][idx]);
-            xAalpha[alpha * lsq_SNOVA + idx] = xgf16_from_nibble(Aalpha[alpha][idx]);
-            xBalpha[alpha * lsq_SNOVA + idx] = xgf16_from_nibble(Balpha[alpha][idx]);
+            xQalpha1[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha1[alpha][idx]);
+            xQalpha2[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Qalpha2[alpha][idx]);
+            xAalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Aalpha[alpha][idx]);
+            xBalpha[alpha * lsq_SNOVA + idx] = gf16_from_nibble(Balpha[alpha][idx]);
         }
 
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int jdx = 0; jdx < v_SNOVA; jdx++)
-            for (int kdx = 0; kdx < v_SNOVA; kdx++)
-                for (int k1 = 0; k1 < l_SNOVA; ++k1)
+    for (int jdx = 0; jdx < v_SNOVA; jdx++)
+        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+            for (int mi = 0; mi < m_SNOVA; mi++)
+                for (int kdx = 0; kdx < v_SNOVA; kdx++)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         f11_8[jdx * l_SNOVA * mvl_SNOVA + k1 * mvl_SNOVA + mi * v_SNOVA * l_SNOVA + kdx * l_SNOVA + j1] =
                             F11[mi][jdx][kdx][k1 * l_SNOVA + j1];
 
-    for (int mi = 0; mi < m_SNOVA; mi++)
-        for (int jdx = 0; jdx < v_SNOVA; jdx++)
-            for (int kdx = 0; kdx < o_SNOVA; kdx++)
-                for (int k1 = 0; k1 < l_SNOVA; ++k1)
+    for (int jdx = 0; jdx < v_SNOVA; jdx++)
+        for (int k1 = 0; k1 < l_SNOVA; ++k1)
+            for (int mi = 0; mi < m_SNOVA; mi++)
+                for (int kdx = 0; kdx < o_SNOVA; kdx++)
                     for (int j1 = 0; j1 < l_SNOVA; ++j1)
                         f12_8[jdx * l_SNOVA * mol_SNOVA + k1 * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + j1] =
                             F12[mi][jdx][kdx][k1 * l_SNOVA + j1];
@@ -129,8 +98,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
     for (int mi = 0; mi < m_SNOVA; mi++)
         for (int jdx = 0; jdx < v_SNOVA; jdx++)
             for (int kdx = 0; kdx < o_SNOVA; kdx++)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                for (int k1 = 0; k1 < l_SNOVA; ++k1)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
                         f21_8[jdx * l_SNOVA * mol_SNOVA + k1 * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + i1] =
                             F21[mi][kdx][jdx][i1 * l_SNOVA + k1];
 
@@ -193,15 +162,15 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
         for (int jdx = 0; jdx < v_SNOVA; ++jdx)
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    xVinegar_gf16[jdx][i1 * l_SNOVA + j1] = xgf16_from_nibble(vinegar_gf16[jdx][i1 * l_SNOVA + j1]);
+                    xVinegar_gf16[jdx][i1 * l_SNOVA + j1] = gf16_from_nibble(vinegar_gf16[jdx][i1 * l_SNOVA + j1]);
 
         // evaluate the vinegar part of central map
         // 4 * V * L^5
 
-        for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
+        for (int jdx = 0; jdx < v_SNOVA; ++jdx)
             for (int i1 = 0; i1 < l_SNOVA; ++i1)
                 for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    for (int jdx = 0; jdx < v_SNOVA; ++jdx)
+                    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
                             xTemp_Q1[alpha][jdx][i1 * l_SNOVA + j1] ^=
                                 xVinegar_gf16[jdx][k1 * l_SNOVA + i1] * xQalpha1[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
@@ -222,17 +191,20 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
         for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; ++alpha_i1)
             for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; ++jdx_k1)
+                xLeft[alpha_i1 * vl_SNOVA + jdx_k1] = gf16_reduce(xLeft[alpha_i1 * vl_SNOVA + jdx_k1]);
+
+        for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; ++alpha_i1)
+            for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; ++jdx_k1)
                 left8[alpha_i1 * vl_SNOVA + jdx_k1] = xgf16_to_nibble(xLeft[alpha_i1 * vl_SNOVA + jdx_k1]);
 
         // Same for right
-        for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-            for (int jdx = 0; jdx < v_SNOVA; ++jdx)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int j1 = 0; j1 < l_SNOVA; ++j1)
+        for (int jdx = 0; jdx < v_SNOVA; ++jdx)
+            for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
                         for (int k1 = 0; k1 < l_SNOVA; ++k1)
                             xTemp_Q2[alpha][jdx][i1 * l_SNOVA + j1] ^=
-                                xQalpha2[alpha * lsq_SNOVA + i1 * l_SNOVA + k1] *
-                                xVinegar_gf16[jdx][k1 * l_SNOVA + j1];
+                                xQalpha2[alpha * lsq_SNOVA + i1 * l_SNOVA + k1] * xVinegar_gf16[jdx][k1 * l_SNOVA + j1];
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
@@ -242,11 +214,15 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
             for (int jdx = 0; jdx < v_SNOVA; ++jdx)
-                for (int i1 = 0; i1 < l_SNOVA; ++i1)
-                    for (int k1 = 0; k1 < l_SNOVA; ++k1)
-                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                for (int j1 = 0; j1 < l_SNOVA; ++j1)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                        for (int k1 = 0; k1 < l_SNOVA; ++k1)
                             xRight[alpha * vl_SNOVA * l_SNOVA + j1 * v_SNOVA * l_SNOVA + jdx * l_SNOVA + i1] ^=
                                 xTemp_Q2[alpha][jdx][i1 * l_SNOVA + k1] * xBalpha[alpha * lsq_SNOVA + k1 * l_SNOVA + j1];
+
+        for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; ++alpha_i1)
+            for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; ++jdx_k1)
+                xRight[alpha_i1 * vl_SNOVA + jdx_k1] = gf16_reduce(xRight[alpha_i1 * vl_SNOVA + jdx_k1]);
 
         for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; ++alpha_i1)
             for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; ++jdx_k1)
@@ -275,10 +251,10 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
             }
 
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-            for (int mi = 0; mi < m_SNOVA; mi++)
-                for (int j1 = 0; j1 < l_SNOVA; j1++)
-                    for (int kdx = 0; kdx < v_SNOVA; kdx++)
-                        for (int i1 = 0; i1 < l_SNOVA; i1++)
+            for (int kdx = 0; kdx < v_SNOVA; kdx++)
+                for (int mi = 0; mi < m_SNOVA; mi++)
+                    for (int i1 = 0; i1 < l_SNOVA; i1++)
+                        for (int j1 = 0; j1 < l_SNOVA; j1++)
                         {
                             fvv_temp8[alpha * l_SNOVA * v_SNOVA * ml_SNOVA + j1 * v_SNOVA * ml_SNOVA + kdx * ml_SNOVA + mi * l_SNOVA + i1] =
                                 temp3_8[alpha * l_SNOVA * mvl_SNOVA + i1 * mvl_SNOVA + mi * v_SNOVA * l_SNOVA + kdx * l_SNOVA + j1];
@@ -309,28 +285,28 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
         //
         // 2 * V * O^2 * L^5
 
-        for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; alpha_i1 += 1)
-            for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; jdx_k1++)
-            {
-                __m256i k_lh = vtl_multtab(left8[alpha_i1 * vl_SNOVA + jdx_k1]);
-                for (int mi_kdx_j1 = 0; mi_kdx_j1 < mol_SNOVA32; mi_kdx_j1++)
-                    temp_l256[alpha_i1 * mol_SNOVA32 + mi_kdx_j1] ^= _mm256_shuffle_epi8(k_lh, f12_256[jdx_k1 * mol_SNOVA32 + mi_kdx_j1]);
-            }
+        for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; jdx_k1++)
+            for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; alpha_i1++)
+                {
+                    __m256i k_lh = vtl_multtab(left8[alpha_i1 * vl_SNOVA + jdx_k1]);
+                    for (int mi_kdx_j1 = 0; mi_kdx_j1 < mol_SNOVA32; mi_kdx_j1++)
+                        temp_l256[alpha_i1 * mol_SNOVA32 + mi_kdx_j1] ^= _mm256_shuffle_epi8(k_lh, f12_256[jdx_k1 * mol_SNOVA32 + mi_kdx_j1]);
+                }
 
-        for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; alpha_i1 += 1)
-            for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; jdx_k1++)
-            {
-                __m256i k_lh = vtl_multtab(right8[alpha_i1 * vl_SNOVA + jdx_k1]);
-                for (int mi_kdx_j1 = 0; mi_kdx_j1 < mol_SNOVA32; mi_kdx_j1++)
-                    temp_r256[alpha_i1 * mol_SNOVA32 + mi_kdx_j1] ^= _mm256_shuffle_epi8(k_lh, f21_256[jdx_k1 * mol_SNOVA32 + mi_kdx_j1]);
-            }
+        for (int jdx_k1 = 0; jdx_k1 < vl_SNOVA; jdx_k1++)
+            for (int alpha_i1 = 0; alpha_i1 < l_SNOVA * lsq_SNOVA; alpha_i1++)
+                {
+                    __m256i k_lh = vtl_multtab(right8[alpha_i1 * vl_SNOVA + jdx_k1]);
+                    for (int mi_kdx_j1 = 0; mi_kdx_j1 < mol_SNOVA32; mi_kdx_j1++)
+                        temp_r256[alpha_i1 * mol_SNOVA32 + mi_kdx_j1] ^= _mm256_shuffle_epi8(k_lh, f21_256[jdx_k1 * mol_SNOVA32 + mi_kdx_j1]);
+                }
 
         // Shuffle Left
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-            for (int mi = 0; mi < m_SNOVA; ++mi)
-                for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    for (int kdx = 0; kdx < o_SNOVA; ++kdx)
-                        for (int i1 = 0; i1 < l_SNOVA; ++i1)
+            for (int kdx = 0; kdx < o_SNOVA; ++kdx)
+                for (int mi = 0; mi < m_SNOVA; ++mi)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
                             temp_left8[alpha * l_SNOVA * mol_SNOVA + j1 * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + i1] =
                                 temp_l8[(alpha * l_SNOVA + i1) * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + j1];
 
@@ -371,10 +347,10 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
         // Shuffle
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha)
-            for (int mi = 0; mi < m_SNOVA; ++mi)
-                for (int j1 = 0; j1 < l_SNOVA; ++j1)
-                    for (int kdx = 0; kdx < o_SNOVA; ++kdx)
-                        for (int i1 = 0; i1 < l_SNOVA; ++i1)
+            for (int kdx = 0; kdx < o_SNOVA; ++kdx)
+                for (int mi = 0; mi < m_SNOVA; ++mi)
+                    for (int i1 = 0; i1 < l_SNOVA; ++i1)
+                        for (int j1 = 0; j1 < l_SNOVA; ++j1)
                             temp_right8[alpha * l_SNOVA * mol_SNOVA + j1 * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + i1] =
                                 temp_r8[(alpha * l_SNOVA + i1) * mol_SNOVA + mi * o_SNOVA * l_SNOVA + kdx * l_SNOVA + j1];
 
@@ -415,36 +391,51 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
         // Gauss elimination in constant time
         for (int mi2 = 0; mi2 < m_SNOVA * lsq_SNOVA; ++mi2)
         {
-            // Find index to swap in constant time
-            int swapidx = -1;
-            for (int j2 = mi2; j2 < m_SNOVA * lsq_SNOVA; ++j2)
-                swapidx += ((swapidx >> 31) & ct_gf16_is_not_zero(Gauss[j2][mi2])) * (1 + j2);
+            int swap = ct_gf16_is_not_zero(Gauss[mi2][mi2]) - 1;
+            for (int j2 = mi2 + 1; j2 < m_SNOVA * lsq_SNOVA; ++j2) {
+                __m256i swap256 = _mm256_set1_epi32(swap);
+                __m256i *gdest = (__m256i *)&Gauss[mi2][0];
+                __m256i *gsource = (__m256i *)&Gauss[j2][0];
+                for (int k2 = 0; k2 < GAUSS_ROW32; ++k2)
+                    gdest[k2] ^= gsource[k2] & swap256;
 
-            flag_redo |= swapidx >> 31;
-
-            // Always swap
-            swapidx += ((swapidx >> 31) & 1) * mi2;
-            for (int k2 = mi2; k2 < m_SNOVA * lsq_SNOVA + 1; ++k2)
-            {
-                uint8_t temp_gf16 = Gauss[mi2][k2];
-                Gauss[mi2][k2] = Gauss[swapidx][k2];
-                Gauss[swapidx][k2] = temp_gf16;
+                swap = ct_gf16_is_not_zero(Gauss[mi2][mi2]) - 1;
             }
+            flag_redo |= swap;
 
             // Constant time GF16 inverse
             __m256i res256 = _mm256_shuffle_epi8(avx_inv_table, _mm256_set1_epi8(Gauss[mi2][mi2]));
             uint8_t t_GF16 = _mm256_extract_epi8(res256, 0);
 
             int kstart = (mi2 / 32) * 32;
-            for (int k = kstart; k < GAUSS_ROW32; k += 32)
+            for (int k = kstart; k < GAUSS_ROW_mult32; k += 32)
                 gf16_32_mul_k(Gauss[mi2] + k, t_GF16, Gauss[mi2] + k);
 
             for (int j2 = mi2 + 1; j2 < m_SNOVA * lsq_SNOVA; ++j2)
             {
                 t_GF16 = Gauss[j2][mi2];
-                for (int k2 = kstart; k2 < GAUSS_ROW32; k2 += 32)
+                for (int k2 = kstart; k2 < GAUSS_ROW_mult32; k2 += 32)
                     gf16_32_mul_k_add(Gauss[mi2] + k2, t_GF16, (Gauss[j2] + k2));
             }
+        }
+
+        // Cleanup
+        if (!flag_redo) {
+            SNOVA_CLEAR(vinegar_in_byte)
+            SNOVA_CLEAR(xLeft)
+            SNOVA_CLEAR(xRight)
+            SNOVA_CLEAR(left256)
+            SNOVA_CLEAR(right256)
+            SNOVA_CLEAR(temp3_256)
+            SNOVA_CLEAR(temp_l256)
+            SNOVA_CLEAR(temp_r256)
+            SNOVA_CLEAR(temp_left256)
+            SNOVA_CLEAR(temp_right256)
+            SNOVA_CLEAR(res_left256)
+            SNOVA_CLEAR(res_right256)
+            SNOVA_CLEAR(gtemp256)
+            SNOVA_CLEAR(fvv_res256)
+            SNOVA_CLEAR(fvv_temp256)
         }
     } while (flag_redo);
 
@@ -478,6 +469,7 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
     gf16m_t X_in_GF16Matrix[n_SNOVA] = {0};
     gf16m_t signature_in_GF16Matrix[n_SNOVA] = {0};
+    gf16m_t gf16m_secret_temp0;
 
     memcpy((uint8_t *)X_in_GF16Matrix, (uint8_t *)vinegar_gf16, n_SNOVA * lsq_SNOVA);
 
@@ -486,9 +478,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
         gf16m_clone(signature_in_GF16Matrix[index], X_in_GF16Matrix[index]);
         for (int i = 0; i < o_SNOVA; ++i)
         {
-            gf16m_t temp1;
-            gf16m_mul(T12[index][i], X_in_GF16Matrix[v_SNOVA + i], temp1);
-            gf16m_add(signature_in_GF16Matrix[index], temp1, signature_in_GF16Matrix[index]);
+            gf16m_mul(T12[index][i], X_in_GF16Matrix[v_SNOVA + i], gf16m_secret_temp0);
+            gf16m_add(signature_in_GF16Matrix[index], gf16m_secret_temp0, signature_in_GF16Matrix[index]);
         }
     }
 
@@ -499,6 +490,18 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
 
     // output signature
     memcpy(pt_signature + bytes_signature, array_salt, bytes_salt);
+
+    // Cleanup
+    SNOVA_CLEAR(vinegar_gf16)
+    SNOVA_CLEAR(xVinegar_gf16)
+    SNOVA_CLEAR(solution)
+    SNOVA_CLEAR(hash_in_GF16)
+    SNOVA_CLEAR(signed_hash)
+    SNOVA_CLEAR(Gauss)
+    SNOVA_CLEAR(f11_256)
+    SNOVA_CLEAR(f12_256)
+    SNOVA_CLEAR(f21_256)
+    SNOVA_CLEAR(gf16m_secret_temp0)
 
     return 0;
 }

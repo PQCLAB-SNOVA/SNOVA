@@ -12,7 +12,7 @@ extern "C" {
 /**
  * init gf16 tables
  */
-void init_gf16_tables() {
+void init_gf16_tables(void) {
     if (gf16_tables_is_init) {
         return;
     }

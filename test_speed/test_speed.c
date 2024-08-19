@@ -50,21 +50,21 @@ int main() {
     uint64_t t4[TEST_SPEED_N * 2] = {0};
     int r = 0;
 
-	printf("------------------------------------------------\n");
-	printf("SNOVA params:\t\t\n");
+    printf("------------------------------------------------\n");
+    printf("SNOVA params:\t\t\n");
     printf("(V, O, L) =\t\t(%d, %d, %d)\n", v_SNOVA, o_SNOVA, l_SNOVA);
 #if PK_EXPAND_SHAKE
-	printf("PK_EXPAND =\t\tPK_EXPAND_SHAKE\n");
+    printf("PK_EXPAND =\t\tPK_EXPAND_SHAKE\n");
 #else
-	printf("PK_EXPAND =\t\tAES\n");
+    printf("PK_EXPAND =\t\tAES\n");
 #endif
-	printf("PK size =\t\t%d\n", bytes_pk);
-	printf("Sign size =\t\t%d\n", bytes_signature + bytes_salt);
-	printf("CRYPTO_ALGNAME =\t%s\n", CRYPTO_ALGNAME);
-	printf("------------------------------------------------\n");
-	printf("SNOVA TEST SPEED N=\t%d\n", TEST_SPEED_N);
-	printf("SNOVA TEST SPEED start...\n");
-	printf("================================================\n");
+    printf("PK size =\t\t%d\n", bytes_pk);
+    printf("Sign size =\t\t%d\n", bytes_signature + bytes_salt);
+    printf("CRYPTO_ALGNAME =\t%s\n", CRYPTO_ALGNAME);
+    printf("------------------------------------------------\n");
+    printf("SNOVA TEST SPEED N=\t%d\n", TEST_SPEED_N);
+    printf("SNOVA TEST SPEED start...\n");
+    printf("================================================\n");
     for (int i = 0; i < 48; i++) {
         entropy_input[i] = i;
     }
@@ -73,15 +73,16 @@ int main() {
 
     pt_public_key_seed = seed;
     pt_private_key_seed = seed + seed_length_public;
-    create_salt(array_salt);
 
     for (int i = 0; i < TEST_SPEED_N; i++) {
+		randombytes(array_salt, bytes_salt);
+
         t0[i * 2] = get_cycles();
-        generate_keys_ssk(pt_public_key_seed, pt_private_key_seed, pk, ssk);
+        generate_keys_ssk(pk, ssk, pt_public_key_seed, pt_private_key_seed);
         t0[i * 2 + 1] = get_cycles();
 
         t1[i * 2] = get_cycles();
-        generate_keys_esk(pt_public_key_seed, pt_private_key_seed, pk, esk);
+        generate_keys_esk(pk, esk, pt_public_key_seed, pt_private_key_seed);
         t1[i * 2 + 1] = get_cycles();
 
         t2[i * 2] = get_cycles();
@@ -99,22 +100,22 @@ int main() {
 
     printf("generate_keys_ssk: \n");
     analysis(t0, TEST_SPEED_N, CPU_CLOCK);
-	printf("------------------------------------------------\n");
+    printf("------------------------------------------------\n");
     printf("generate_keys_esk: \n");
     analysis(t1, TEST_SPEED_N, CPU_CLOCK);
-	printf("------------------------------------------------\n");
+    printf("------------------------------------------------\n");
     printf("sign_digest_ssk: \n");
     analysis(t2, TEST_SPEED_N, CPU_CLOCK);
-	printf("------------------------------------------------\n");
+    printf("------------------------------------------------\n");
     printf("sign_digest_esk: \n");
     analysis(t3, TEST_SPEED_N, CPU_CLOCK);
-	printf("------------------------------------------------\n");
+    printf("------------------------------------------------\n");
     printf("verify_signture: \n");
     analysis(t4, TEST_SPEED_N, CPU_CLOCK);
-	printf("================================================\n");
+    printf("================================================\n");
     printf("verify_signture fail count: %d / %d\n", -r, TEST_SPEED_N);
     printf("Total cycle: %lu, Time: %lfs\n", (t4[TEST_SPEED_N * 2 - 1] - t0[0]),
            (double)(t4[TEST_SPEED_N * 2 - 1] - t0[0]) / (double)CPU_CLOCK);
-	printf("------------------------------------------------\n");
+    printf("------------------------------------------------\n");
     return 0;
 }
