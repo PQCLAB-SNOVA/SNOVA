@@ -1,5 +1,12 @@
-// AES primitives for SNOVA
-// OQS commit 9b14b3db6d196f342636760a880ed611064967c4
+// SPDX-License-Identifier: MIT
+/**
+ * AES primitives for SNOVA
+ * 
+ * https://github.com/open-quantum-safe/liboqs
+ * commit 3488f0a598c64b730ee2e2a4acb38e1a51797c99
+ * 
+ * Copyright (c) 2024 SNOVA TEAM
+ */
 
 #include <assert.h>
 #include <stddef.h>

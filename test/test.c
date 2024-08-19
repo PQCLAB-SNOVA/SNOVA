@@ -27,7 +27,7 @@ int main() {
     pt_public_key_seed = seed;
     pt_private_key_seed = seed + seed_length_public;
 
-    create_salt(array_salt);
+	randombytes(array_salt, bytes_salt);
 
     printf("private key seed (%d bytes): \n", seed_length_private);
     print_byte(pt_private_key_seed, seed_length_private);
@@ -35,7 +35,7 @@ int main() {
     print_byte(pt_public_key_seed, seed_length_public);
 
     printf("generate_keys_pack\n");
-    generate_keys_esk(pt_public_key_seed, pt_private_key_seed, pk, sk);
+    generate_keys_esk(pk, sk, pt_public_key_seed, pt_private_key_seed);
     printf("private key size: (%d bytes): \n", bytes_sk);
     print_byte(sk, bytes_sk);
     printf("public key size: (%d bytes): \n", bytes_pk);

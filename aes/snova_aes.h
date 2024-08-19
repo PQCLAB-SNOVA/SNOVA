@@ -1,4 +1,8 @@
-// AES primitives used by SNOVA
+/**
+ * AES primitives used by SNOVA
+ * 
+ * Copyright (c) 2024 SNOVA TEAM
+ */
 
 #ifndef SNOVA_AES_H
 #define SNOVA_AES_H

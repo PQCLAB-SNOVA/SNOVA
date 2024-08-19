@@ -11,9 +11,9 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
     pt_private_key_seed = seed_pair + seed_length_public;
 
 #if sk_is_seed
-    generate_keys_ssk(pt_public_key_seed, pt_private_key_seed, pk, sk);
+    generate_keys_ssk(pk, sk, pt_public_key_seed, pt_private_key_seed);
 #else
-    generate_keys_esk(pt_public_key_seed, pt_private_key_seed, pk, sk);
+    generate_keys_esk(pk, sk, pt_public_key_seed, pt_private_key_seed);
 #endif
 
     return 0;
@@ -27,8 +27,8 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     // hash
     shake256(m, mlen, digest, 64);
 
-    // sign
-    create_salt(salt);
+    // gen salt
+	randombytes(salt, bytes_salt);
 #if sk_is_seed
     sign_digest_ssk(sm, digest, 64, salt, sk);
 #else

@@ -48,7 +48,7 @@ make test
 make clean
 make test_api
 ```
-### Genarate KAT:
+### Generate KAT:
 ```bash
 make clean
 make PQCgenKAT
@@ -147,6 +147,10 @@ Example: (Using AVX2 Optimization)
 ```bash
 make test_api SNOVA_V=24 SNOVA_O=5 SNOVA_L=4 SK_IS_SEED=1 OPTIMISATION=2
 ```
+
+SHAKE
+-------
+A variant that uses SHAKE128 for the public key expansion has been added as an alternative to AES-CTR. SHAKE can be configured via the PK_EXPAND_SHAKE setting in the makefile. (Note: This will generate different KATs.)
 
 Team Members
 -------

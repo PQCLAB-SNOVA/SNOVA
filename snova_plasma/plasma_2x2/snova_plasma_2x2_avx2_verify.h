@@ -14,7 +14,7 @@
 static inline void gf16m_transpose_u16_16way(__m256i* ap, const __m256i a) {
     __m256i t0 = _mm256_slli_epi64(a, 4) & _mm256_set1_epi16(0x0f00);
     __m256i t1 = _mm256_srli_epi64(a, 4) & _mm256_set1_epi16(0x00f0);
-	uint16_t mask = 0xf00f;
+    uint16_t mask = 0xf00f;
     *ap = (a & _mm256_set1_epi16(mask)) ^ t0 ^ t1;
 }
 
@@ -64,7 +64,7 @@ void evaluation_2x2_avx2_vtl(map_group1_u16* restrict map1_u16, uint16_t* restri
     // Parallel Operation Transposed Matrix
     uint16_t sig_var_tr_u16[n_SNOVA_mult16] __attribute__((aligned(32))) = {0};
     __m256i* sig_var_256 = (__m256i*)sig_var_u16;
-	__m256i* sig_var_tr_256 = (__m256i*)sig_var_tr_u16;
+    __m256i* sig_var_tr_256 = (__m256i*)sig_var_tr_u16;
 
     for (int index = 0; index < n_SNOVA16; ++index) {
         gf16m_transpose_u16_16way(sig_var_tr_256 + index, sig_var_256[index]);
@@ -164,11 +164,11 @@ int verify_signture_2x2(const uint8_t* pt_digest, uint64_t bytes_digest, const u
     map_group1_u16 map1_u16;
     uint16_t hash_in_GF16Matrix_u16[m_SNOVA] __attribute__((aligned(32))) = {0};
     uint8_t* hash_in_bytes = (uint8_t*)hash_in_GF16Matrix_u16;
-	uint16_t sig_var_u16[n_SNOVA_mult16] __attribute__((aligned(32)));
+    uint16_t sig_var_u16[n_SNOVA_mult16] __attribute__((aligned(32)));
 
     createSignedHash(pt_digest, bytes_digest, pk_stru->pt_public_key_seed, pt_salt, signed_hash);
 
-	memcpy(sig_var_u16, pt_signature, bytes_signature); // without salt
+    memcpy(sig_var_u16, pt_signature, bytes_signature); // without salt
 
 #if (o_SNOVA * l_SNOVA) & 0x1 == 1
     signed_hash[bytes_hash - 1] &= 0x0f;

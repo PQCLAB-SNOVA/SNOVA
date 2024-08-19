@@ -3,6 +3,7 @@
 
 #include "gf16_matrix_inline.h"
 #include "snova.h"
+#include "ct_functions.h"
 #include "aes/snova_aes.h"
 
 static gf16m_t S[l_SNOVA] = {0};
@@ -39,6 +40,13 @@ static inline uint8_t gf16_to_nibble(uint32_t idx)
     return (res & 0x5) | ((res >> 2) & 0xa);
 }
 
+// Conversion 32 bit -> 4 bit representation
+static inline uint8_t xgf16_to_nibble(uint32_t res)
+{
+    res = res | (res >> 4);
+    return (res & 0x5) | ((res >> 2) & 0xa);
+}
+
 // Constant time GF16 inverse
 // x^16 - x = 0 implies x^14 = x^-1
 static inline uint32_t gf16_inv(uint32_t val)
@@ -51,17 +59,11 @@ static inline uint32_t gf16_inv(uint32_t val)
     return gf16_reduce(res2 * ((res4 * res8) & 0x49249249));
 }
 
-// Constant time check for zeroness
-static inline uint32_t ct_xgf16_is_not_zero(uint32_t val)
-{
-    return (val | (val >> 3) | (val >> 6) | (val >> 9)) & 1;
-}
-
 
 /**
  * Generate elements of F16[S]
  */
-void gen_S_array() {
+void gen_S_array(void) {
     if (S_is_init) {
         return;
     }
@@ -94,36 +96,6 @@ void shake256(const uint8_t* pt_seed_array, int input_bytes, uint8_t* pt_output_
 }
 
 /**
- * Using AES-CTR encryption as a hash function
- * AES ciphertext padded with zeros.
- * The iv is also padded with zeros.
- * Using input value as the AES key.
- * The ciphertext obtained from AES encryption serves as the output of the hash
- * function.
- * @param pt_seed_array - Pointer to the hash input. (Fixed length of 16)
- * @param pt_output_array - Pointer to the hash output. (Fixed length of
- * bytes_prng_public)
- */
-void hash_aes128(const uint8_t* pt_seed_array, uint8_t* pt_output_array) {
-    AES_128_CTR(pt_output_array, bytes_prng_public, pt_seed_array, 16);
-}
-
-/**
- * pk expand from seed
- */
-#if PK_EXPAND_SHAKE
-void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {
-    uint64_t shake_bytes[(bytes_prng_public + 7) / 8];
-    snova_shake(pt_public_key_seed, 16, shake_bytes, 8 * ((bytes_prng_public + 7) / 8));
-    memcpy(out_pk, shake_bytes, bytes_prng_public);
-}
-#else
-void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {
-    hash_aes128(pt_public_key_seed, out_pk);
-}
-#endif
-
-/**
  * Convert one byte of data to GF16 representation (using only half of the
  * byte). Example: <bytes 12 34 56 78 9a bc> -> <bytes 02 01 04 03 05 ..... 0c
  * 0b>
@@ -131,13 +103,28 @@ void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {
  * @param gf16_array - output (GF16)
  * @param num_of_GF16s - GF16 amount
  */
+// void convert_bytes_to_GF16s(const uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
+//     uint16_t* GF16_array_2B = (uint16_t*)gf16_array;
+//     for (int index = 0; index < num_of_GF16s >> 1; index++) {
+//         *(GF16_array_2B++) = (byte_array[index] & 0xF) ^ ((byte_array[index] & 0xF0) << 4);
+//     }
+//     if (num_of_GF16s % 2 == 1) {
+//         gf16_array[num_of_GF16s - 1] = byte_array[num_of_GF16s >> 1] & 0xF;
+//     }
+// }
 void convert_bytes_to_GF16s(const uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
-    uint16_t* GF16_array_2B = (uint16_t*)gf16_array;
-    for (int index = 0; index < num_of_GF16s >> 1; index++) {
-        *(GF16_array_2B++) = (byte_array[index] & 0xF) ^ ((byte_array[index] & 0xF0) << 4);
+    int i;
+    int pairs = num_of_GF16s >> 1;
+
+    // Convert each byte into two GF16 values
+    for (i = 0; i < pairs; ++i) {
+        gf16_array[i * 2] = byte_array[i] & 0x0F;
+        gf16_array[i * 2 + 1] = (byte_array[i] >> 4) & 0x0F;
     }
+
+    // Handle the last GF16 value if num_of_GF16s is odd
     if (num_of_GF16s % 2 == 1) {
-        gf16_array[num_of_GF16s - 1] = byte_array[num_of_GF16s >> 1] & 0xF;
+        gf16_array[num_of_GF16s - 1] = byte_array[pairs] & 0x0F;
     }
 }
 
@@ -149,63 +136,93 @@ void convert_bytes_to_GF16s(const uint8_t* byte_array, gf16_t* gf16_array, int n
  * @param gf16_array - input (GF16)
  * @param num_of_GF16s - GF16 amount
  */
-void convert_GF16s_to_bytes(uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
-    for (int index = 0; index < num_of_GF16s / 2; index++) {
-        byte_array[index] = gf16_array[index << 1] | (gf16_array[(index << 1) + 1] << 4);
+// void convert_GF16s_to_bytes(uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
+//     for (int index = 0; index < num_of_GF16s / 2; index++) {
+//         byte_array[index] = gf16_array[index << 1] | (gf16_array[(index << 1) + 1] << 4);
+//     }
+//     if (num_of_GF16s % 2 == 1) byte_array[num_of_GF16s / 2] = gf16_array[num_of_GF16s - 1];
+// }
+void convert_GF16s_to_bytes(uint8_t* byte_array, const gf16_t* gf16_array, int num_of_GF16s) {
+    int i;
+    int pairs = num_of_GF16s >> 1;
+
+    // Convert pairs of GF16 values into one byte
+    for (i = 0; i < pairs; ++i) {
+        byte_array[i] = gf16_array[i * 2] | (gf16_array[i * 2 + 1] << 4);
     }
-    if (num_of_GF16s % 2 == 1) byte_array[num_of_GF16s / 2] = gf16_array[num_of_GF16s - 1];
+
+    // Handle the last GF16 value if num_of_GF16s is odd
+    if (num_of_GF16s % 2 == 1) {
+        byte_array[pairs] = gf16_array[num_of_GF16s - 1];
+    }
+}
+
+/**
+ * pk expand from seed
+ * 
+ * Using AES-CTR encryption as a hash function
+ * AES ciphertext padded with zeros.
+ * The iv is also padded with zeros.
+ * Using input value as the AES key.
+ * The ciphertext obtained from AES encryption serves as the output of the hash
+ * function.
+ * @param pt_public_key_seed - Pointer to the hash input. (Fixed length of 16)
+ * @param out_pk - Pointer to the hash output. (Fixed length of
+ * bytes_prng_public)
+ */
+void pk_expand(const uint8_t* pt_public_key_seed, uint8_t* out_pk) {
+#if PK_EXPAND_SHAKE
+    uint64_t pk_bytes[(bytes_prng_public + 7) / 8] __attribute__((aligned(32)));
+    snova_shake(pt_public_key_seed, 16, pk_bytes, 8 * ((bytes_prng_public + 7) / 8));
+    memcpy(out_pk, pk_bytes, bytes_prng_public);
+#else
+    AES_128_CTR(out_pk, bytes_prng_public, pt_public_key_seed, 16);
+#endif
 }
 
 /**
  * Convert one byte of data to GF16 representation (using only half of the
  * byte). cut_in_half Example: <bytes 12 34 56 78 9a bc> -> <bytes 02 04 06 08
- * 0a 01 03 05 07 09 0b>
+ * 0a 0c 01 03 05 07 09 0b>
  * @param byte_array - input (bytes)
  * @param gf16_array - output (GF16)
  * @param num_of_GF16s - GF16 amount
  */
 void convert_bytes_to_GF16s_cut_in_half(const uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
-    uint64_t* pt_GF16_8;
-    uint64_t* pt_GF16half_8;
-    uint64_t* pt_byte_8;
-    pt_GF16_8 = (uint64_t*)(gf16_array + ((num_of_GF16s + 1) >> 1));
-    pt_GF16half_8 = (uint64_t*)gf16_array;
-    pt_byte_8 = (uint64_t*)byte_array;
-    for (int index = (num_of_GF16s >> 4); index > 0; --index) {
-        *(pt_GF16half_8++) = ((*(pt_byte_8))) & 0x0F0F0F0F0F0F0F0F;
-        *(pt_GF16_8++) = ((*pt_byte_8++) >> 4) & 0x0F0F0F0F0F0F0F0F;
+    int half_GF16s = (num_of_GF16s + 1) >> 1;
+    int i;
+
+    // Extract the lower 4 bits of each byte to the first half of gf16_array
+    for (i = 0; i < half_GF16s; ++i) {
+        gf16_array[i] = byte_array[i] & 0x0F;
     }
-    for (int index = (num_of_GF16s >> 4) << 3; index < (num_of_GF16s >> 1); ++index) {
-        gf16_array[index + ((num_of_GF16s + 1) >> 1)] = byte_array[index] >> 4;
-    }
-    for (int index = (num_of_GF16s >> 4) << 3; index < ((num_of_GF16s + 1) >> 1); ++index) {
-        gf16_array[index] = byte_array[index] & 0xF;
+
+    // Extract the upper 4 bits of each byte to the second half of gf16_array
+    for (i = 0; i < (num_of_GF16s >> 1); ++i) {
+        gf16_array[i + half_GF16s] = byte_array[i] >> 4;
     }
 }
 
 /**
  * Convert two GF16 values to one byte.
  * Example:
- *  <bytes 02 04 06 08 0a 01 03 05 07 09 0b> -> <bytes 12 34 56 78 9a bc>
+ *  <bytes 02 04 06 08 0a 0c 01 03 05 07 09 0b> -> <bytes 12 34 56 78 9a bc>
  * @param byte_array - output (bytes)
  * @param gf16_array - input (GF16)
  * @param num_of_GF16s - GF16 amount
  */
 void convert_GF16s_to_bytes_merger_in_half(uint8_t* byte_array, gf16_t* gf16_array, int num_of_GF16s) {
-    uint64_t* pt_GF16_8;
-    uint64_t* pt_GF16half_8;
-    uint64_t* pt_byte_8;
-    pt_GF16_8 = (uint64_t*)(gf16_array + ((num_of_GF16s + 1) >> 1));
-    pt_GF16half_8 = (uint64_t*)gf16_array;
-    pt_byte_8 = (uint64_t*)byte_array;
-    for (int index = (num_of_GF16s >> 4); index > 0; --index) {
-        (*(pt_byte_8++)) = (*(pt_GF16_8++) << 4) | (*(pt_GF16half_8++));
+    int half_GF16s = (num_of_GF16s + 1) >> 1;
+    int i;
+
+    // Combine pairs of GF16 values into one byte
+    for (i = 0; i < (num_of_GF16s >> 1); ++i) {
+        byte_array[i] = gf16_array[i] | (gf16_array[i + half_GF16s] << 4);
     }
-    for (int index = (num_of_GF16s >> 4) << 3; index < (num_of_GF16s >> 1); ++index) {
-        byte_array[index] = gf16_array[index] | ((gf16_array[index + ((num_of_GF16s + 1) >> 1)]) << 4);
-    }
-    if ((num_of_GF16s & 1) == 1) {
-        byte_array[num_of_GF16s >> 1] = gf16_array[num_of_GF16s >> 1];
+
+    // If num_of_GF16s is odd, handle the last GF16 value separately
+    if (num_of_GF16s & 1) {
+        byte_array[i] = gf16_array[i];
     }
 }
 
@@ -222,13 +239,7 @@ void gen_a_FqS(gf16_t* c, gf16m_t pt_matrix) {
     }
     gf16m_scale(S[rank - 1], (c[rank - 1] != 0) ? c[rank - 1] : 16 - (c[0] + (c[0] == 0)), temp);
     gf16m_add(pt_matrix, temp, pt_matrix);
-}
-
-
-// Constant time version of: (val != 0)
-static inline uint32_t ct_gf16_is_not_zero(gf16_t val)
-{
-    return (val | (val >> 1) | (val >> 2) | (val >> 3)) & 1;
+    SNOVA_CLEAR(temp);
 }
 
 // Constant time version of gen_a_FqS
@@ -254,6 +265,8 @@ void gen_a_FqS_ct(gf16_t* c, gf16m_t pt_matrix) {
 
     for (int ij = 0; ij < lsq_SNOVA; ij++)
         pt_matrix[ij] = gf16_to_nibble(xTemp[ij]);
+    
+    SNOVA_CLEAR(xTemp);
 }
 
 /**
@@ -280,6 +293,10 @@ void gen_seeds_and_T12(T12_t T12, const uint8_t* seed) {
             pt_array += l_SNOVA;
         }
     }
+
+    // Clear Secret!
+    SNOVA_CLEAR(prng_output_private);
+    SNOVA_CLEAR(GF16_prng_output_private);
 }
 
 /**
@@ -288,7 +305,7 @@ void gen_seeds_and_T12(T12_t T12, const uint8_t* seed) {
  * @param pt_public_key_seed - input
  */
 void gen_A_B_Q_P(map_group1* map, const uint8_t* pt_public_key_seed) {
-    uint8_t prng_output_public[bytes_prng_public];
+    uint8_t prng_output_public[((GF16s_prng_public + 1) >> 1)];
     uint8_t temp[lsq_SNOVA * l_SNOVA];
     // ----- pt temp -----
     pk_expand(pt_public_key_seed, prng_output_public);
@@ -310,7 +327,7 @@ void gen_A_B_Q_P(map_group1* map, const uint8_t* pt_public_key_seed) {
     gf16_t* pt_array = (uint8_t*)(map->Qalpha1) + l_SNOVA * lsq_SNOVA;
     for (int index = 0; index < lsq_SNOVA; ++index) {
         gen_a_FqS(pt_array, map->Qalpha2[index]);
-        be_invertible_by_add_aS(map->Qalpha2[index]);
+        // be_invertible_by_add_aS(map->Qalpha2[index]);
         pt_array += l_SNOVA;
         // Qalpha2[index].printout();
     }
@@ -318,7 +335,7 @@ void gen_A_B_Q_P(map_group1* map, const uint8_t* pt_public_key_seed) {
     pt_array = temp;
     for (int index = 0; index < lsq_SNOVA; ++index) {
         gen_a_FqS(pt_array, map->Qalpha1[index]);
-        be_invertible_by_add_aS(map->Qalpha1[index]);
+        // be_invertible_by_add_aS(map->Qalpha1[index]);
         // Qalpha1[index].printout();
         pt_array += l_SNOVA;
     }
@@ -368,16 +385,19 @@ void gen_F_ref(map_group2* map2, map_group1* map1, T12_t T12) {
             }
         }
     }
+
+    // Clear Secret!
+    SNOVA_CLEAR(temp);
 }
 
 /**
  * Generate public key (P22 part)
+ * @param outP22 - output
  * @param T12 - input
  * @param P21 - input
  * @param F12 - input
- * @param outP22 - output
  */
-void gen_P22_ref(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22) {
+void gen_P22_ref(P22_byte_t outP22, T12_t T12, P21_t P21, F12_t F12) {
     gf16m_t temp1, temp2;
     P22_t P22 = {0};
     for (int i = 0; i < m_SNOVA; ++i) {
@@ -393,7 +413,12 @@ void gen_P22_ref(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22) {
             }
         }
     }
+
     convert_GF16s_to_bytes(outP22, (uint8_t*)P22, m_SNOVA * o_SNOVA * o_SNOVA * lsq_SNOVA);
+
+    // Clear Secret!
+    SNOVA_CLEAR(temp1);
+    SNOVA_CLEAR(temp2);
 }
 
 /**
@@ -401,7 +426,7 @@ void gen_P22_ref(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22) {
  * @param P22_gf16s - output
  * @param P22_bytes - input
  */
-void input_P22(uint8_t* P22_gf16s, uint8_t* P22_bytes) {
+void input_P22(uint8_t* P22_gf16s, const uint8_t* P22_bytes) {
     convert_bytes_to_GF16s(P22_bytes, P22_gf16s, m_SNOVA * o_SNOVA * o_SNOVA * lsq_SNOVA);
 }
 
@@ -431,16 +456,10 @@ void sk_unpack(sk_gf16* skupk, const uint8_t* esk) {
 
 /**
  * Pack public key. pk = (key_elems).
- * @param pk - pointer to output public key.
- * @param key_elems - pointer to input snova key elements.
  */
-void pk_pack(uint8_t* pk, snova_key_elems* key_elems) { memcpy(pk, key_elems->pk.pt_public_key_seed, bytes_pk); }
-
-/**
- * Create salt
- * @param array_salt - pointer to output salt.
- */
-void create_salt(uint8_t* array_salt) { randombytes(array_salt, bytes_salt); }
+void pk_pack(uint8_t* pk, snova_key_elems* key_elems) {
+    memcpy(pk, &key_elems->pk, bytes_pk);
+}
 
 /**
  * createHashOut
@@ -615,6 +634,11 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
     uint8_t signed_hash[bytes_hash];
     uint8_t vinegar_in_byte[(v_SNOVA * lsq_SNOVA + 1) >> 1];
 
+    // temp
+    gf16m_t gf16m_temp0;
+    gf16m_t gf16m_temp1;
+    gf16m_t gf16m_secret_temp0;
+
     Left_X = Left_X_tmp;
     Right_X = Right_X_tmp;
     int flag_redo = 1;
@@ -662,12 +686,11 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
         // evaluate the vinegar part of central map
         for (int alpha = 0; alpha < lsq_SNOVA; ++alpha) {
             for (int index = 0; index < v_SNOVA; ++index) {
-                gf16m_t X_in_GF16Matrix_P, temp;
-                gf16m_transpose(X_in_GF16Matrix[index], X_in_GF16Matrix_P);
-                gf16m_mul(X_in_GF16Matrix_P, Qalpha1[alpha], temp);
-                gf16m_mul(Aalpha[alpha], temp, Left[alpha][index]);
-                gf16m_mul(Qalpha2[alpha], X_in_GF16Matrix[index], temp);
-                gf16m_mul(temp, Balpha[alpha], Right[alpha][index]);
+                gf16m_transpose(X_in_GF16Matrix[index], gf16m_temp0);
+                gf16m_mul(gf16m_temp0, Qalpha1[alpha], gf16m_temp1);
+                gf16m_mul(Aalpha[alpha], gf16m_temp1, Left[alpha][index]);
+                gf16m_mul(Qalpha2[alpha], X_in_GF16Matrix[index], gf16m_temp1);
+                gf16m_mul(gf16m_temp1, Balpha[alpha], Right[alpha][index]);
                 /*
                 Left[alpha][index] = Aalpha[alpha] *
                 (X_in_GF16Matrix[index].transpose()) * Qalpha1[alpha];
@@ -681,10 +704,9 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
             for (int alpha = 0; alpha < lsq_SNOVA; ++alpha) {
                 for (int j = 0; j < v_SNOVA; ++j) {
                     for (int k = 0; k < v_SNOVA; ++k) {
-                        gf16m_t temp1, temp2;
-                        gf16m_mul(Left[alpha][j], F11[i][j][k], temp1);
-                        gf16m_mul(temp1, Right[alpha][k], temp2);
-                        gf16m_add(Fvv_in_GF16Matrix[i], temp2, Fvv_in_GF16Matrix[i]);
+                        gf16m_mul(Left[alpha][j], F11[i][j][k], gf16m_temp0);
+                        gf16m_mul(gf16m_temp0, Right[alpha][k], gf16m_temp1);
+                        gf16m_add(Fvv_in_GF16Matrix[i], gf16m_temp1, Fvv_in_GF16Matrix[i]);
                         /*
                         Fvv_in_GF16Matrix[i] = Fvv_in_GF16Matrix[i] +
                         Left[alpha][j] * F11[i][j][k] * Right[alpha][k];
@@ -716,9 +738,8 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
 
                 for (int alpha = 0; alpha < lsq_SNOVA; ++alpha) {
                     for (int j = 0; j < v_SNOVA; ++j) {
-                        gf16m_t temp1;
-                        gf16m_mul(Left[alpha][j], F12[i][j][index], temp1);
-                        gf16m_mul(temp1, Qalpha2[alpha], Left_X_tmp);
+                        gf16m_mul(Left[alpha][j], F12[i][j][index], gf16m_temp0);
+                        gf16m_mul(gf16m_temp0, Qalpha2[alpha], Left_X_tmp);
                         Left_X = Left_X_tmp;
                         Right_X = Balpha[alpha];
                         /*
@@ -738,10 +759,9 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
 
                 for (int alpha = 0; alpha < lsq_SNOVA; ++alpha) {
                     for (int j = 0; j < v_SNOVA; ++j) {
-                        gf16m_t temp1;
                         Left_X = Aalpha[alpha];
-                        gf16m_mul(Qalpha1[alpha], F21[i][index][j], temp1);
-                        gf16m_mul(temp1, Right[alpha][j], Right_X_tmp);
+                        gf16m_mul(Qalpha1[alpha], F21[i][index][j], gf16m_temp0);
+                        gf16m_mul(gf16m_temp0, Right[alpha][j], Right_X_tmp);
                         Right_X = Right_X_tmp;
                         /*
                         Left_X = Aalpha[alpha];
@@ -819,12 +839,12 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
             }
         }
     }
+
     for (int index = 0; index < v_SNOVA; ++index) {
         gf16m_clone(signature_in_GF16Matrix[index], X_in_GF16Matrix[index]);
         for (int i = 0; i < o_SNOVA; ++i) {
-            gf16m_t temp1;
-            gf16m_mul(T12[index][i], X_in_GF16Matrix[v_SNOVA + i], temp1);
-            gf16m_add(signature_in_GF16Matrix[index], temp1, signature_in_GF16Matrix[index]);
+            gf16m_mul(T12[index][i], X_in_GF16Matrix[v_SNOVA + i], gf16m_secret_temp0);
+            gf16m_add(signature_in_GF16Matrix[index], gf16m_secret_temp0, signature_in_GF16Matrix[index]);
             /*
             signature_in_GF16Matrix[index] = signature_in_GF16Matrix[index] +
             T12[index][i] * X_in_GF16Matrix[v_SNOVA + i];
@@ -843,6 +863,8 @@ void sign_digest_core_ref(uint8_t* pt_signature, const uint8_t* digest, uint64_t
     for (int i = 0; i < bytes_salt; ++i) {
         pt_signature[bytes_signature + i] = array_salt[i];
     }
+
+    SNOVA_CLEAR(gf16m_secret_temp0);
 }
 
 #endif

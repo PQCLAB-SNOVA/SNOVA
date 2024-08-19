@@ -29,7 +29,7 @@ static inline void gf16m_set_zero(gf16m_t a) { memset(a, 0, sq_rank); }
 /**
  * Adding GF16 Matrices. c = a + b
  */
-static inline void gf16m_add(gf16m_t a, gf16m_t b, gf16m_t c) {
+static inline void gf16m_add(const gf16m_t a, const gf16m_t b, gf16m_t c) {
     for (int i = 0; i < rank; ++i) {
         for (int j = 0; j < rank; ++j) {
             set_gf16m(c, i, j,
@@ -41,7 +41,7 @@ static inline void gf16m_add(gf16m_t a, gf16m_t b, gf16m_t c) {
 /**
  * Multiplying GF16 Matrices. c = a * b
  */
-static inline void gf16m_mul(gf16m_t a, gf16m_t b, gf16m_t c) {
+static inline void gf16m_mul(const gf16m_t a, const gf16m_t b, gf16m_t c) {
     for (int i = 0; i < rank; ++i) {
         for (int j = 0; j < rank; ++j) {
             set_gf16m(c, i, j,
@@ -59,7 +59,7 @@ static inline void gf16m_mul(gf16m_t a, gf16m_t b, gf16m_t c) {
 /**
  * Scaling the GF16 Matrix. c = Scaling "a" by a factor of "k"
  */
-static inline void gf16m_scale(gf16m_t a, gf16_t k, gf16m_t c) {
+static inline void gf16m_scale(const gf16m_t a, gf16_t k, gf16m_t c) {
     for (int i = 0; i < rank; ++i) {
         for (int j = 0; j < rank; ++j) {
             set_gf16m(c, i, j, gf16_get_mul(get_gf16m(a, i, j), k));
@@ -70,7 +70,7 @@ static inline void gf16m_scale(gf16m_t a, gf16_t k, gf16m_t c) {
 /**
  * Transposing the GF16 Matrix. ap = aT
  */
-static inline void gf16m_transpose(gf16m_t a, gf16m_t ap) {
+static inline void gf16m_transpose(const gf16m_t a, gf16m_t ap) {
     for (int i = 0; i < rank; ++i) {
         for (int j = 0; j < rank; ++j) {
             set_gf16m(ap, i, j, get_gf16m(a, j, i));
@@ -81,7 +81,7 @@ static inline void gf16m_transpose(gf16m_t a, gf16m_t ap) {
 /**
  * Cloning the GF16 Matrix target = source
  */
-static inline void gf16m_clone(gf16m_t target, gf16m_t source) {
+static inline void gf16m_clone(gf16m_t target, const gf16m_t source) {
     memcpy(target, source, sq_rank);
 }
 
@@ -209,8 +209,9 @@ static inline gf16_t gf16m_det(gf16m_t entry) {
     entry[3][0]))
     )
     */
+#else
+#error
 #endif
-    return 0;
 }
 
 /**

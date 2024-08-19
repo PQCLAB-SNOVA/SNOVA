@@ -20,7 +20,8 @@ Use uint16_t to store a GF16 2x2 matrix (with each half-byte storing one element
 #define m_SNOVA_mult2  ((m_SNOVA + 1) / 2 * 2)
 
 #define GAUSS_ROW (m_SNOVA * lsq_SNOVA + 1)
-#define GAUSS_ROW_mult32 ((GAUSS_ROW + 31) / 32 * 32)
+#define GAUSS_ROW32 ((GAUSS_ROW + 31) / 32)
+#define GAUSS_ROW_mult32 (GAUSS_ROW32 * 32)
 #define GAUSS_COL (m_SNOVA * lsq_SNOVA)
 #define GAUSS_COL_mult32 ((GAUSS_COL + 31) / 32 * 32)
 
@@ -173,14 +174,14 @@ void gen_A_B_Q_P_2x2(map_group1_u16* restrict map, uint8_t* restrict pt_public_k
     uint8_t* pt_array = (uint8_t*)(map->Qalpha1) + l_SNOVA * lsq_SNOVA / 2;
     for (int index = 0; index < lsq_SNOVA; ++index) {
         gen_a_FqS_u16(pt_array, map->Qalpha2 + index);
-        be_invertible_by_add_aS_u16(map->Qalpha2 + index);
+        // be_invertible_by_add_aS_u16(map->Qalpha2 + index);
         pt_array += (l_SNOVA / 2);
     }
 
     pt_array = temp;
     for (int index = 0; index < lsq_SNOVA; ++index) {
         gen_a_FqS_u16(pt_array, map->Qalpha1 + index);
-        be_invertible_by_add_aS_u16(map->Qalpha1 + index);
+        // be_invertible_by_add_aS_u16(map->Qalpha1 + index);
         pt_array += (l_SNOVA / 2);
     }
 }

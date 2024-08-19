@@ -411,21 +411,17 @@ int sign_digest_core_4x4_avx2_vtl(uint8_t *pt_signature, const uint8_t *digest, 
         // Gauss elimination in constant time
         for (int mi2 = 0; mi2 < m_SNOVA * lsq_SNOVA; ++mi2)
         {
-            // Find index to swap in constant time
-            int swapidx = -1;
-            for (int j2 = mi2; j2 < m_SNOVA * lsq_SNOVA; ++j2)
-                swapidx += ((swapidx >> 31) & ct_gf16_is_not_zero(Gauss[j2][mi2])) * (1 + j2);
+            int swap = ct_gf16_is_not_zero(Gauss[mi2][mi2]) - 1;
+            for (int j2 = mi2 + 1; j2 < m_SNOVA * lsq_SNOVA; ++j2) {
+                __m256i swap256 = _mm256_set1_epi32(swap);
+                __m256i *gdest = (__m256i *)&Gauss[mi2][0];
+                __m256i *gsource = (__m256i *)&Gauss[j2][0];
+                for (int k2 = 0; k2 < GAUSS_ROW32; ++k2)
+                    gdest[k2] ^= gsource[k2] & swap256;
 
-            flag_redo |= swapidx >> 31;
-
-            // Always swap
-            swapidx += ((swapidx >> 31) & 1) * mi2;
-            for (int k2 = mi2; k2 < m_SNOVA * lsq_SNOVA + 1; ++k2)
-            {
-                uint8_t temp_gf16 = Gauss[mi2][k2];
-                Gauss[mi2][k2] = Gauss[swapidx][k2];
-                Gauss[swapidx][k2] = temp_gf16;
+                swap = ct_gf16_is_not_zero(Gauss[mi2][mi2]) - 1;
             }
+            flag_redo |= swap;
 
             // Constant time GF16 inverse
             __m256i res256 = _mm256_shuffle_epi8(avx_inv_table, _mm256_set1_epi8(Gauss[mi2][mi2]));
@@ -442,14 +438,32 @@ int sign_digest_core_4x4_avx2_vtl(uint8_t *pt_signature, const uint8_t *digest, 
                     gf16_32_mul_k_add(Gauss[mi2] + k2, t_GF16, (Gauss[j2] + k2));
             }
         }
+
+        // Cleanup
+        if (!flag_redo) {
+            SNOVA_CLEAR(vinegar_in_byte);
+            SNOVA_CLEAR(left_b)
+            SNOVA_CLEAR(right_b)
+            SNOVA_CLEAR(temp3_8)
+            SNOVA_CLEAR(temp_l8)
+            SNOVA_CLEAR(temp_r8)
+            SNOVA_CLEAR( temp_left8)
+            SNOVA_CLEAR(temp_right8)
+            SNOVA_CLEAR(gtemp8)
+            SNOVA_CLEAR(fvv_temp8)
+            SNOVA_CLEAR(fvv_res8)
+            SNOVA_CLEAR(res_left256)
+            SNOVA_CLEAR(res_right256)
+        }
     } while (flag_redo);
 
     // printf("times of Gauss elimination : %d\n", num_sign);
 
+    uint8_t t_GF16 = 0;
+    uint8_t Gauss_last_col;
     for (int mil2 = m_SNOVA * lsq_SNOVA - 1; mil2 >= 0; --mil2)
     {
-        uint8_t t_GF16 = 0;
-        uint8_t Gauss_last_col = Gauss[mil2][m_SNOVA * lsq_SNOVA];
+        Gauss_last_col = Gauss[mil2][m_SNOVA * lsq_SNOVA];
         __m256i t_GF16_256 = _mm256_setzero_si256();
 
         Gauss[mil2][m_SNOVA * lsq_SNOVA] = 0;
@@ -463,6 +477,8 @@ int sign_digest_core_4x4_avx2_vtl(uint8_t *pt_signature, const uint8_t *digest, 
             t_GF16 ^= t_GF16_256_8_ptr[k2];
 
         solution[mil2] = Gauss_last_col ^ t_GF16;
+        t_GF16 = 0;
+        Gauss_last_col = 0;
     }
 
     // Establish Signature
@@ -491,6 +507,18 @@ int sign_digest_core_4x4_avx2_vtl(uint8_t *pt_signature, const uint8_t *digest, 
 
     // output signature
     memcpy(pt_signature + bytes_signature, array_salt, bytes_salt);
+
+    // Cleanup
+    SNOVA_CLEAR(vinegar_gf16)
+    SNOVA_CLEAR(solution)
+    SNOVA_CLEAR(hash_in_GF16)
+    SNOVA_CLEAR(signed_hash)
+    SNOVA_CLEAR(Gauss)
+    SNOVA_CLEAR(f11_8)
+    SNOVA_CLEAR(f12_8)
+    SNOVA_CLEAR(f21_8)
+    SNOVA_CLEAR(T12_u64_ov)
+    SNOVA_CLEAR(T12_u64)
 
     return 0;
 }

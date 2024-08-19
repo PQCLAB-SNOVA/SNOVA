@@ -27,7 +27,7 @@ static __m256i vtl_mult_table1, vtl_mult_table2, vtl_mult_table4, vtl_mult_table
 static __m256i zero256 = {0};
 
 int init_avx_table() {
-	static int avx_table_init_flag = 0;
+    static int avx_table_init_flag = 0;
     if (avx_table_init_flag) return 0;
     avx_table_init_flag = 1;
     for (int i = 0; i < 16; ++i) {
@@ -47,15 +47,15 @@ int init_avx_table() {
         m8H[i + 16] = mt(i, 8) << 4;
     }
 
-	for (int i = 0; i < 16; ++i) {
-		for (int j = 0; j < 16; ++j) {
-			for (int k = 0; k < 16; ++k) {
-				uint8_t temp = (mt(i, k) << 4) ^ mt(j, k);
-				mt4b2_16[i * 16 + j][k] = temp;
-				mt4b2_16[i * 16 + j][k + 16] = temp;
-			}
-		}
-	}
+    for (int i = 0; i < 16; ++i) {
+        for (int j = 0; j < 16; ++j) {
+            for (int k = 0; k < 16; ++k) {
+                uint8_t temp = (mt(i, k) << 4) ^ mt(j, k);
+                mt4b2_16[i * 16 + j][k] = temp;
+                mt4b2_16[i * 16 + j][k + 16] = temp;
+            }
+        }
+    }
 
     vtl_multmask1 = _mm256_set1_epi32(1);
     vtl_multmask2 = _mm256_set1_epi32(2);
@@ -74,9 +74,6 @@ int init_avx_table() {
     return 1;
 }
 
-// Non-constant time VTL table
-#define vtl_multtab(val) (mtk2_16[val])
-
 // Constant time VTL table
 static inline __m256i vtl_ct_multtab(uint8_t val)
 {
@@ -87,6 +84,15 @@ static inline __m256i vtl_ct_multtab(uint8_t val)
            (vtl_mult_table4 & _mm256_cmpgt_epi32(val256 & vtl_multmask4, zero256)) ^
            (vtl_mult_table8 & _mm256_cmpgt_epi32(val256 & vtl_multmask8, zero256));
 }
+
+/**
+ * There should be no timing exploit for SNOVA even when
+ * 
+ * #define vtl_multtab(val) (mtk2_16[val])
+ * 
+ * The current (unpublished) estimate is that with this #define a timing attack is less efficient than the direct attack.
+ */
+#define vtl_multtab vtl_ct_multtab
 
 // return a * t^1
 static inline __m256i mul2_avx_r(__m256i a) {
@@ -129,12 +135,12 @@ static inline __m256i mul8_avx_r_half(__m256i a) {
 
 static inline void gf16_32_mul_k(gf16_t* a, gf16_t k, gf16_t* ak) {
     __m256i a_256 = *((__m256i*)a);
-	*((__m256i*)ak) = _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
+    *((__m256i*)ak) = _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
 }
 
 static inline void gf16_32_mul_k_add(gf16_t*  a, gf16_t k, gf16_t*  ak) {
     __m256i a_256 = *((__m256i*)a);
-	*((__m256i*)ak) ^= _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
+    *((__m256i*)ak) ^= _mm256_shuffle_epi8(vtl_ct_multtab(k), a_256);
 }
 
 static inline void gf16_32_mul_32(gf16_t*  a, gf16_t*  b, gf16_t*  c) {
@@ -176,12 +182,12 @@ static inline void gf16_32_mul_32_add(gf16_t*  a, gf16_t*  b, gf16_t*  c) {
 
 /**
  * Generate public key (P22 part), use avx2 vtl
+ * @param outP22 - output
  * @param T12 - input
  * @param P21 - input
  * @param F12 - input
- * @param outP22 - output
  */
-void gen_P22_vtl(T12_t T12, P21_t P21, F12_t F12, P22_byte_t outP22)
+void gen_P22_vtl(P22_byte_t outP22, T12_t T12, P21_t P21, F12_t F12)
 {
     P22_t P22 = {0};
 
