@@ -1,166 +1,42 @@
-ARCH=native
+platform := avx2
 
-# Autodetect AVX
-AVX2 := $(findstring AVX2, $(shell gcc -march=$(ARCH) -dM -E - < /dev/null))
-AVX512 := $(findstring AVX512, $(shell gcc -march=$(ARCH) -dM -E - < /dev/null))
+subdirs :=\
+  SNOVA_37_17_16_2_ESK SNOVA_37_17_16_2_SSK SNOVA_37_17_16_2_SHAKE_ESK SNOVA_37_17_16_2_SHAKE_SSK\
+  SNOVA_25_8_16_3_ESK SNOVA_25_8_16_3_SSK SNOVA_25_8_16_3_SHAKE_ESK SNOVA_25_8_16_3_SHAKE_SSK\
+  SNOVA_24_5_16_4_ESK SNOVA_24_5_16_4_SSK SNOVA_24_5_16_4_SHAKE_ESK SNOVA_24_5_16_4_SHAKE_SSK\
+  SNOVA_56_25_16_2_ESK SNOVA_56_25_16_2_SSK SNOVA_56_25_16_2_SHAKE_ESK SNOVA_56_25_16_2_SHAKE_SSK\
+  SNOVA_49_11_16_3_ESK SNOVA_49_11_16_3_SSK SNOVA_49_11_16_3_SHAKE_ESK SNOVA_49_11_16_3_SHAKE_SSK\
+  SNOVA_37_8_16_4_ESK SNOVA_37_8_16_4_SSK SNOVA_37_8_16_4_SHAKE_ESK SNOVA_37_8_16_4_SHAKE_SSK\
+  SNOVA_24_5_16_5_ESK SNOVA_24_5_16_5_SSK SNOVA_24_5_16_5_SHAKE_ESK SNOVA_24_5_16_5_SHAKE_SSK\
+  SNOVA_75_33_16_2_ESK SNOVA_75_33_16_2_SSK SNOVA_75_33_16_2_SHAKE_ESK SNOVA_75_33_16_2_SHAKE_SSK\
+  SNOVA_66_15_16_3_ESK SNOVA_66_15_16_3_SSK SNOVA_66_15_16_3_SHAKE_ESK SNOVA_66_15_16_3_SHAKE_SSK\
+  SNOVA_60_10_16_4_ESK SNOVA_60_10_16_4_SSK SNOVA_60_10_16_4_SHAKE_ESK SNOVA_60_10_16_4_SHAKE_SSK\
+  SNOVA_29_6_16_5_ESK SNOVA_29_6_16_5_SSK SNOVA_29_6_16_5_SHAKE_ESK SNOVA_29_6_16_5_SHAKE_SSK
 
-# Autodetect AES support on ARM
-ARM_FEATURE_AES := $(findstring ARM_FEATURE_AES, $(shell gcc -march=$(ARCH) -dM -E - < /dev/null))
+OPTIMISATION = 0
+valid_platform = ref
 
-CC = gcc
-AR = ar
-
-ifeq ($(ARM_FEATURE_AES), ARM_FEATURE_AES)
-CFLAGS = -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=armv8-a+crypto -mtune=$(ARCH)
-else
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=$(ARCH) -mtune=$(ARCH)
+ifeq ($(platform), opt)
+OPTIMISATION = 1
+valid_platform = opt
 endif
 
-BUILD_OUT_PATH = build/
-BUILD_LIBO_OUT_PATH = build_libo
-
-OLIST = $(BUILD_OUT_PATH)rng.o $(BUILD_OUT_PATH)snova.o $(BUILD_OUT_PATH)ct_functions.o
-SNOVA_API_OLIST = $(BUILD_OUT_PATH)snova.o $(BUILD_OUT_PATH)ct_functions.o
-
-SYMMETRICLIB = shake/KeccakHash.c shake/SimpleFIPS202.c shake/KeccakP-1600-opt64.c shake/KeccakSponge.c
-SYMMETRICLIB += shake/snova_shake_ref.c shake/snova_shake_opt.c
-SYMMETRICLIB += aes/aes_c.c aes/snova_aes.c
-ifeq ($(AVX512), AVX512)
-SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD512.c shake/KeccakP-1600-times8-SIMD512.c aes/aes128_ni.c aes/aes256_ni.c
-else
-ifeq ($(AVX2), AVX2)
-SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD256.c aes/aes128_ni.c aes/aes256_ni.c
-else
-ifeq ($(ARM_FEATURE_AES), ARM_FEATURE_AES)
-SYMMETRICLIB += aes/aes128_armv8.c aes/aes256_armv8.c
-endif
-endif
-endif
-# SYMMETRICLIBO = $(SYMMETRICLIB:.c=.o)
-SYMMETRICLIBO = $(patsubst %.c, $(BUILD_LIBO_OUT_PATH)/%.o, $(notdir $(SYMMETRICLIB)))
-STATICLIB = $(BUILD_LIBO_OUT_PATH)/libsnovasym.a
-LIBS = -L$(BUILD_LIBO_OUT_PATH) -lsnovasym
-
-# snova params
-SNOVA_V ?= 24
-SNOVA_O ?= 5
-SNOVA_L ?= 4
-
-# 0: sk = esk; 1: sk = ssk
-SK_IS_SEED ?= 0
-
-# 0: disable; 1: enable
-PK_EXPAND_SHAKE ?= 0
-
-# 0: Reference, 1:Optimised, 2: AVX2
-ifeq ($(AVX2), AVX2)
-OPTIMISATION ?= 2
-else
-OPTIMISATION ?= 1
+ifeq ($(platform), avx2)
+OPTIMISATION = 2
+valid_platform = avx2
 endif
 
-ifeq ($(PK_EXPAND_SHAKE), 1)
-    PK_EXPAND = _SHAKE
-else
-    PK_EXPAND = 
-endif
+.PHONY: all clean $(subdirs)
 
-CRYPTO_ALGNAME = SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)$(PK_EXPAND)
-SNOVA_PARAMS = -D v_SNOVA=$(SNOVA_V) -D o_SNOVA=$(SNOVA_O) -D l_SNOVA=$(SNOVA_L) -D sk_is_seed=$(SK_IS_SEED) -D CRYPTO_ALGNAME=\"$(CRYPTO_ALGNAME)\" -D PK_EXPAND_SHAKE=$(PK_EXPAND_SHAKE)
-SNOVA_PARAMS += -D OPTIMISATION=$(OPTIMISATION)
+all: $(subdirs)
 
-TEST_SPEED_N ?= 2048
-WASM = 0
+$(subdirs): snova_config.src
+	mkdir -p $@/$(valid_platform)
+	grep -A 7 $@ snova_config.src > $@/$(valid_platform)/snova_config.mk
+	sed -i 's/OPTIMISATION=0/OPTIMISATION=$(OPTIMISATION)/' $@/$(valid_platform)/snova_config.mk
+	sh -c "cd $@/$(valid_platform) ; ln -s ../../src/* . || true"
+	$(MAKE) -C $@/$(valid_platform) clean_without_libsnovasym PQCgenKAT
 
-
-init:
-	@mkdir -p $(BUILD_OUT_PATH)
-
-init_libo:
-	@mkdir -p $(BUILD_LIBO_OUT_PATH)
-
-info:
-	@echo "==================================="
-	@echo "SNOVA MAKE ..."
-	@echo "CRYPTO_ALGNAME: $(CRYPTO_ALGNAME)"
-	@echo "SK_IS_SEED:     $(SK_IS_SEED)"
-	@echo "PK_EXPAND:      $(PK_EXPAND)"
-	@echo "OPTIMISATION:   $(OPTIMISATION)"
-	@echo "AVX2:           $(AVX2)"
-	@echo "AVX512:         $(OBJ_FILES)"
-	@echo "==================================="
-
-wasm:
-	$(eval CC := emcc)
-	$(eval AR := emar)
-	$(eval CFLAGS := $(filter-out -march%, $(CFLAGS)))
-	$(eval CFLAGS := $(filter-out -mtune%, $(CFLAGS)))
-	$(eval CFLAGS += -msimd128)
-	$(eval OPTIMISATION := 1)
-	$(eval WASM := 1)
-	$(eval WASM_OUT_PATH := ./)
-	$(eval WASM_OUT_EXT := wasm)
-	@echo "==================================="
-	@echo "SETTING WASM ..."
-	@echo "WASM:           $(WASM)"
-	@echo "WASM_OUT_PATH:  $(WASM_OUT_PATH)"
-	@echo "WASM_OUT_EXT:   $(WASM_OUT_EXT)"
-	@echo "==================================="
-
-clean: clean_kat
-	rm -f ./*/*.o ./*/*.a *.a *.wasm *.js
-	rm -rf ./build/ 2>/dev/null
-	rm -rf ./build_libo/ 2>/dev/null
-
-clean_all: clean
-	rm -f *.log
-
-clean_without_libsnovasym:
-	rm -f *.wasm *.js
-	rm -rf ./build/ 2>/dev/null
-
-clean_kat: 
-	rm -f *.req *.rsp
-
-clean_sign:
-	rm -f ./build/sign.o
-
-$(BUILD_LIBO_OUT_PATH)/%.o: shake/%.c | init_libo
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_LIBO_OUT_PATH)/%.o: aes/%.c | init_libo
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_LIBO_OUT_PATH)/libsnovasym.a: $(SYMMETRICLIBO)
-	$(AR) rcs $@ $^
-
-build/rng.o:
-	$(CC) $(CFLAGS) -c -o build/rng.o ./rng.c
-
-build/ct_functions.o:
-	$(CC) $(CFLAGS) -c -o build/ct_functions.o ./ct_functions.c
-
-build/snova.o:
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o build/snova.o ./snova.c
-
-build/sign.o: build/snova.o
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o build/sign.o ./sign.c
-
-test: init info $(OLIST) $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) test/test.c -o test.a $(LIBS)
-	./test.a > test_$(CRYPTO_ALGNAME).log
-
-test_api: init info $(OLIST) build/sign.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) test/test_api.c build/sign.o -o test_api.a $(LIBS)
-	./test_api.a > test_api_$(CRYPTO_ALGNAME).log
-
-test_speed: init info $(OLIST) $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -D TEST_SPEED_N=$(TEST_SPEED_N) $(OLIST) ./test_speed/test_speed.c -o test_speed.a $(LIBS)
-	./test_speed.a
-
-PQCgenKAT: init info $(OLIST) build/sign.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./PQCgenKAT_sign.c -o ./PQCgenKAT.a $(LIBS)
-	./PQCgenKAT.a
-
-build_wasmapi: init wasm info $(SNOVA_API_OLIST) $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(SNOVA_API_OLIST) wasmapi.c -o $(WASM_OUT_PATH)$(CRYPTO_ALGNAME).$(WASM_OUT_EXT) -s WASM=1 -s EXPORTED_FUNCTIONS='["_malloc", "_free"]' -s SAFE_HEAP=1 -s TOTAL_STACK=16777216 -s ALLOW_MEMORY_GROWTH=1 $(LIBS) --no-entry
+clean:
+	rm -rf $(subdirs)
+	$(MAKE) -C src/ clean_all
