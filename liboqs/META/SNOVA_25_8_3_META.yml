@@ -4,7 +4,7 @@ claimed-nist-level: 1
 length-public-key: 2320
 length-secret-key: 48
 length-signature: 165
-nistkat-sha256: 7725ee02ef9c067f289bf021a637a36fdfc865e69636380d9e48c390f282031d
+nistkat-sha256: 421ae43fc07e3d966f1e09844795f762293142b37f5738bc838a2aea9522c7c0
 principal-submitters:
   - SNOVA team
 implementations:
