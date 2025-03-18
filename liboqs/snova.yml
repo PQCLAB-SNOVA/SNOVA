@@ -108,7 +108,7 @@ parameter-sets:
   claimed-nist-level: 1
   claimed-security: EUF-CMA
   length-public-key: 9842
-  length-secret-key: 91440
+  length-secret-key: 48
   length-signature: 124
   implementations-switch-on-runtime-cpu-features: true
   implementations:

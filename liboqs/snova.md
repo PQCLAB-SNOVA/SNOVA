@@ -18,7 +18,7 @@
 |   SNOVA\_24\_5\_4\_SHAKE    | snova54               | EUF-CMA          |                    1 |                      1016 |                        48 |                      248 |
 |    SNOVA\_24\_5\_4\_esk     | snova54x              | EUF-CMA          |                    1 |                      1016 |                     36848 |                      248 |
 | SNOVA\_24\_5\_4\_SHAKE\_esk | NA                    | EUF-CMA          |                    1 |                      1016 |                     36848 |                      248 |
-|      SNOVA\_37\_17\_2       | snova172              | EUF-CMA          |                    1 |                      9842 |                     91440 |                      124 |
+|      SNOVA\_37\_17\_2       | snova172              | EUF-CMA          |                    1 |                      9842 |                        48 |                      124 |
 |       SNOVA\_25\_8\_3       | snova83               | EUF-CMA          |                    1 |                      2320 |                        48 |                      165 |
 |      SNOVA\_56\_25\_2       | snova252              | EUF-CMA          |                    3 |                     31266 |                        48 |                      178 |
 |      SNOVA\_49\_11\_3       | snova113              | EUF-CMA          |                    3 |                      6006 |                        48 |                      286 |

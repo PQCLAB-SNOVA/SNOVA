@@ -2,7 +2,7 @@ name: SNOVA_37_17_2
 type: signature
 claimed-nist-level: 1
 length-public-key: 9842
-length-secret-key: 91440
+length-secret-key: 48
 length-signature: 124
 nistkat-sha256: 24a2a063d137d39172dba1ac16975befe9b52bb2c64bc9b306531bff269c96ef
 principal-submitters:
