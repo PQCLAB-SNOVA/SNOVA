@@ -1,9 +1,3 @@
-# Vectorized SHAKE XOF
-
-This folder contains implementations of SHAKE128 CTR-XOF in snova_shake_ref.c and  snova_shake_opt.c.
-The optimised implementation can be tested against the reference using the genkat function of SNOVA
-for optimisation levels OPTIMISATION=0 versus OPTIMISATION=1 or OPTIMISATION=2.
-
 # XKCP source code
 
 The distribution includes a copy of XKCP as source code. It was retrieved using:

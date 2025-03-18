@@ -21,20 +21,17 @@ endif
 BUILD_OUT_PATH = build/
 BUILD_LIBO_OUT_PATH = build_libo
 
-OLIST = $(BUILD_OUT_PATH)snova.o $(BUILD_OUT_PATH)ct_functions.o
+OLIST = $(BUILD_OUT_PATH)snova.o $(BUILD_OUT_PATH)snova_common.o $(BUILD_OUT_PATH)snova_shake.o $(BUILD_OUT_PATH)snova_aes.o
 
-SYMMETRICLIB = shake/KeccakHash.c shake/SimpleFIPS202.c shake/KeccakP-1600-opt64.c shake/KeccakSponge.c
-SYMMETRICLIB += shake/snova_shake_ref.c shake/snova_shake_opt.c
-SYMMETRICLIB += aes/aes_c.c aes/snova_aes.c
+SYMMETRICLIB = shake/KeccakHash.c shake/KeccakP-1600-opt64.c shake/KeccakSponge.c
+SYMMETRICLIB += aes/aes_c.c aes/oqs_secure_free.c
 ifeq ($(AVX512), AVX512)
-SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD256.c shake/KeccakP-1600-times8-SIMD512.c aes/aes128_ni.c aes/aes256_ni.c
+SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD256.c shake/KeccakP-1600-times8-SIMD512.c
+SYMMETRICLIB += aes/aes128_ni.c aes/aes256_ni.c
 else
 ifeq ($(AVX2), AVX2)
-SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD256.c aes/aes128_ni.c aes/aes256_ni.c
-else
-ifeq ($(ARM_FEATURE_AES), ARM_FEATURE_AES)
-SYMMETRICLIB += aes/aes128_armv8.c aes/aes256_armv8.c
-endif
+SYMMETRICLIB += shake/KeccakP-1600-times4-SIMD256.c
+SYMMETRICLIB += aes/aes128_ni.c aes/aes256_ni.c
 endif
 endif
 # SYMMETRICLIBO = $(SYMMETRICLIB:.c=.o)
@@ -142,10 +139,16 @@ $(BUILD_LIBO_OUT_PATH)/libsnovasym.a: $(SYMMETRICLIBO)
 	$(AR) rcs $@ $^
 
 build/rng.o:
-	$(CC) $(CFLAGS) -c nistkat/rng.c -o build/rng.o
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c nistkat/rng.c -o build/rng.o
 
-build/ct_functions.o:
-	$(CC) $(CFLAGS) -c ct_functions.c -o build/ct_functions.o
+build/snova_common.o:
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c snova_common.c -o build/snova_common.o
+
+build/snova_shake.o:
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c snova_shake.c -o build/snova_shake.o
+
+build/snova_aes.o:
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c snova_aes.c -o build/snova_aes.o
 
 build/snova.o:
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c snova.c -o build/snova.o
@@ -153,21 +156,21 @@ build/snova.o:
 build/sign.o: build/rng.o build/snova.o 
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c sign.c -o build/sign.o
 
-test: init info build/rng.o build/snova.o build/ct_functions.o $(STATICLIB)
+test: init info build/rng.o $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/rng.o test/test.c -o test.a $(LIBS)
 	./test.a > test_$(CRYPTO_ALGNAME)_OPT_$(OPTIMISATION).log
 
-test_api: init info build/sign.o build/ct_functions.o $(STATICLIB)
+test_api: init info build/sign.o $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/rng.o test/test_api.c build/sign.o -o test_api.a $(LIBS)
 	./test_api.a > test_api_$(CRYPTO_ALGNAME)_$(SK_TYPE)_OPT_$(OPTIMISATION).log
 
-test_speed: init info build/rng.o build/snova.o build/ct_functions.o $(STATICLIB)
+test_speed: init info build/rng.o $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -D TEST_SPEED_N=$(TEST_SPEED_N) $(OLIST) build/rng.o test_speed/test_speed.c -o test_speed.a $(LIBS)
 	./test_speed.a
 
-PQCgenKAT: init info build/sign.o build/ct_functions.o $(STATICLIB)
+PQCgenKAT: init info build/sign.o $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/rng.o build/sign.o nistkat/PQCgenKAT_sign.c -o PQCgenKAT.a $(LIBS)
 	./PQCgenKAT.a
 
-build_wasmapi: init wasm info build/snova.o build/ct_functions.o $(STATICLIB)
+build_wasmapi: init wasm info $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) wasmapi.c -o $(WASM_OUT_PATH)$(CRYPTO_ALGNAME).$(WASM_OUT_EXT) -s WASM=1 -s EXPORTED_FUNCTIONS='["_malloc", "_free"]' -s SAFE_HEAP=1 -s TOTAL_STACK=16777216 -s ALLOW_MEMORY_GROWTH=1 $(LIBS) --no-entry

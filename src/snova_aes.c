@@ -1,20 +1,17 @@
-// SPDX-License-Identifier: MIT
 /**
- * AES primitives for SNOVA
- * 
- * https://github.com/open-quantum-safe/liboqs
- * commit 3488f0a598c64b730ee2e2a4acb38e1a51797c99
- * 
- * Copyright (c) 2024 SNOVA TEAM
+ * functions
  */
 
-#include <assert.h>
 #include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <assert.h>
 
-#include "aes_local.h"
-#include "snova_aes.h"
+#include "snova.h"
+
+#if defined(SNOVA_LIBOQS)
+#include "../../../common/aes/aes_local.h"
+#else
+#include "aes/aes_local.h"
+#endif
 
 #if __AVX2__
 
@@ -36,28 +33,6 @@ void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *
     oqs_aes256_load_schedule_ni(key, &schedule);
     oqs_aes256_ecb_enc_sch_ni(input, 16, schedule, output);
     oqs_aes256_free_schedule_ni(schedule);
-}
-
-#elif __ARM_ARCH
-
-int AES_128_CTR(unsigned char *output, size_t outputByteLen,
-                const unsigned char *input, size_t inputByteLen)
-{
-    assert(inputByteLen > 0);
-    const uint8_t iv[16] = {0};
-    void *schedule = NULL;
-    oqs_aes128_load_schedule_no_bitslice(input, &schedule);
-    oqs_aes128_ctr_enc_sch_armv8(iv, 16, schedule, output, outputByteLen);
-    oqs_aes128_free_schedule_no_bitslice(schedule);
-    return (int)outputByteLen;
-}
-
-void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *output)
-{
-    void *schedule = NULL;
-    oqs_aes256_load_schedule_no_bitslice(key, &schedule);
-    oqs_aes256_ecb_enc_sch_armv8(input, 16, schedule, output);
-    oqs_aes256_free_schedule_no_bitslice(schedule);
 }
 
 #else
@@ -83,12 +58,3 @@ void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *
 }
 
 #endif
-
-void OQS_MEM_secure_free(void *ptr, size_t len)
-{
-    if (ptr != NULL)
-    {
-        memset(ptr, 0, len);
-        free(ptr); // IGNORE free-check
-    }
-}

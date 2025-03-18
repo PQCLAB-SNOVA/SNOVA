@@ -33,7 +33,6 @@ protection within the United States.
 #ifndef API_H
 #define API_H
 
-#define NO_MT4B
 #include "snova.h"
 
 #if sk_is_seed

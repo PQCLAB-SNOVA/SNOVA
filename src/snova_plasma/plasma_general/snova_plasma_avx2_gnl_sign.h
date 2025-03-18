@@ -62,11 +62,11 @@ void calc_LR_J_vtl(
             // nibble splite
             for (int ni = 0; ni < rank; ++ni) {
                 for (int nk = 0; nk < vtl_v_len; ++nk) {
-                    AxS_tr_256[alpha + 1][ni][nk] = _mm256_srli_epi16(AxS_tr_256[alpha][ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    AxS_tr_256[alpha][ni][nk] &= _mm256_set1_epi8(0x0f);
+                    AxS_tr_256[alpha + 1][ni][nk] = (AxS_tr_256[alpha][ni][nk] >> 4) & l_mask;
+                    AxS_tr_256[alpha][ni][nk] &= l_mask;
 
-                    Q2xS_tr_256[alpha + 1][ni][nk] = _mm256_srli_epi16(Q2xS_tr_256[alpha][ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    Q2xS_tr_256[alpha][ni][nk] &= _mm256_set1_epi8(0x0f);
+                    Q2xS_tr_256[alpha + 1][ni][nk] = (Q2xS_tr_256[alpha][ni][nk] >> 4) & l_mask;
+                    Q2xS_tr_256[alpha][ni][nk] &= l_mask;
                 }
             }
             SNOVA_CLEAR(AxS_256);
@@ -105,11 +105,11 @@ void calc_LR_J_vtl(
                 for (int nk = 0; nk < vtl_v_len; ++nk) {
                     __m256i* R_tr_J_256_l = (__m256i *)R_tr_J[mj][alpha][ni];
                     __m256i* R_tr_J_256_h = (__m256i *)R_tr_J[mj][alpha][ni + 1];
-                    L_tr_J_256[ni + 1][nk] = _mm256_srli_epi16(L_tr_J_256[ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    L_tr_J_256[ni][nk] &= _mm256_set1_epi8(0x0f);
+                    L_tr_J_256[ni + 1][nk] = (L_tr_J_256[ni][nk] >> 4) & l_mask;
+                    L_tr_J_256[ni][nk] &= l_mask;
 
-                    R_tr_J_256_h[nk] = _mm256_srli_epi16(R_tr_J_256_l[nk], 4) & _mm256_set1_epi8(0x0f);
-                    R_tr_J_256_l[nk] &= _mm256_set1_epi8(0x0f);
+                    R_tr_J_256_h[nk] = (R_tr_J_256_l[nk] >> 4) & l_mask;
+                    R_tr_J_256_l[nk] &= l_mask;
                 }
             }
 
@@ -122,14 +122,14 @@ void calc_LR_J_vtl(
                 __m256i* L_J_h_256 = (__m256i *)L_J[ni + 1];
                 __m256i* L_J_256 = (__m256i *)L_J_nibble[mj][alpha][ni / 2];
                 for (int nk = 0; nk < vtl_v_len; ++nk) {
-                    L_J_256[nk] = L_J_l_256[nk] ^ _mm256_slli_epi16(L_J_h_256[nk], 4);
+                    L_J_256[nk] = L_J_l_256[nk] ^ (L_J_h_256[nk] << 4);
                 }
 
                 __m256i* R_tr_J_l_256 = (__m256i *)R_tr_J[mj][alpha][ni];
                 __m256i* R_tr_J_h_256 = (__m256i *)R_tr_J[mj][alpha][ni + 1];
                 __m256i* R_tr_J_256 = (__m256i *)R_tr_J_nibble[mj][alpha][ni / 2];
                 for (int nk = 0; nk < vtl_v_len; ++nk) {
-                    R_tr_J_256[nk] = R_tr_J_l_256[nk] ^ _mm256_slli_epi16(R_tr_J_h_256[nk], 4);
+                    R_tr_J_256[nk] = R_tr_J_l_256[nk] ^ (R_tr_J_h_256[nk] << 4);
                 }
             }
             SNOVA_CLEAR(L_tr_J_256);
@@ -230,8 +230,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
                     __m256i* LJxF11J_256_nibble_l = LJxF11J_256[ni];
                     __m256i* LJxF11J_256_nibble_h = LJxF11J_256[ni + 1];
                     for (int nj = 0; nj < vtl_v_len; ++nj) {
-                        LJxF11J_256_nibble_l[nj] = LJxF11J_256_nibble[ni / 2][nj] & _mm256_set1_epi8(0x0f);
-                        LJxF11J_256_nibble_h[nj] = (_mm256_srli_epi16(LJxF11J_256_nibble[ni / 2][nj], 4) & _mm256_set1_epi8(0x0f));
+                        LJxF11J_256_nibble_l[nj] = LJxF11J_256_nibble[ni / 2][nj] & l_mask;
+                        LJxF11J_256_nibble_h[nj] = ((LJxF11J_256_nibble[ni / 2][nj] >> 4) & l_mask);
                     }
                 }
 
@@ -299,8 +299,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
                 __m256i LJxF12J_256[rank][vtl_o_len] = {0};
                 __m256i LJxF12J_256_nibble[rank_next2 / 2][vtl_o_len] = {0};
 
-                for (int vi = 0; vi < rank_next2 / 2; ++vi) {
-                    for (int vj = 0; vj < v_SNOVA * rank; ++vj) {
+                for (int vj = 0; vj < v_SNOVA * rank; ++vj) {
+                    for (int vi = 0; vi < rank_next2 / 2; ++vi) {
                         __m256i k_lh = mtk2_16[L_J_nibble[mi][alpha][vi][vj]];
                         for (int oi = 0; oi < vtl_o_len; ++oi) {
                             LJxF12J_256_nibble[vi][oi] ^= _mm256_shuffle_epi8(k_lh, F12_J_256[vj][oi]);
@@ -313,8 +313,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
                     __m256i* LJxF12J_256_nibble_l = LJxF12J_256[vi];
                     __m256i* LJxF12J_256_nibble_h = LJxF12J_256[vi + 1];
                     for (int vj = 0; vj < vtl_o_len; ++vj) {
-                        LJxF12J_256_nibble_l[vj] = LJxF12J_256_nibble[vi / 2][vj] & _mm256_set1_epi8(0x0f);
-                        LJxF12J_256_nibble_h[vj] = (_mm256_srli_epi16(LJxF12J_256_nibble[vi / 2][vj], 4) & _mm256_set1_epi8(0x0f));
+                        LJxF12J_256_nibble_l[vj] = LJxF12J_256_nibble[vi / 2][vj] & l_mask;
+                        LJxF12J_256_nibble_h[vj] = ((LJxF12J_256_nibble[vi / 2][vj] >> 4) & l_mask);
                     }
                 }
 
@@ -360,8 +360,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
                 __m256i RTRJ_x_F21TRJ_256[rank][vtl_o_len] = {0};
                 __m256i RTRJ_x_F21TRJ_256_nibble[rank_next2 / 2][vtl_o_len] = {0};
 
-                for (int vi = 0; vi < rank_next2 / 2; ++vi) {
-                    for (int vj = 0; vj < v_SNOVA * rank; ++vj) {
+                for (int vj = 0; vj < v_SNOVA * rank; ++vj) {
+                    for (int vi = 0; vi < rank_next2 / 2; ++vi) {
                         __m256i k_lh = mtk2_16[R_tr_J_nibble[mi][alpha][vi][vj]];
                         for (int oi = 0; oi < vtl_o_len; ++oi) {
                             RTRJ_x_F21TRJ_256_nibble[vi][oi] ^= _mm256_shuffle_epi8(k_lh, F21_vo_tr_J_256[vj][oi]);
@@ -373,8 +373,8 @@ int sign_digest_core_gnl_vtl(uint8_t *pt_signature, const uint8_t *digest,
                     __m256i* RTRJ_x_F21TRJ_256_nibble_l = RTRJ_x_F21TRJ_256[vi];
                     __m256i* RTRJ_x_F21TRJ_256_nibble_h = RTRJ_x_F21TRJ_256[vi + 1];
                     for (int vj = 0; vj < vtl_o_len; ++vj) {
-                        RTRJ_x_F21TRJ_256_nibble_l[vj] = RTRJ_x_F21TRJ_256_nibble[vi / 2][vj] & _mm256_set1_epi8(0x0f);
-                        RTRJ_x_F21TRJ_256_nibble_h[vj] = (_mm256_srli_epi16(RTRJ_x_F21TRJ_256_nibble[vi / 2][vj], 4) & _mm256_set1_epi8(0x0f));
+                        RTRJ_x_F21TRJ_256_nibble_l[vj] = RTRJ_x_F21TRJ_256_nibble[vi / 2][vj] & l_mask;
+                        RTRJ_x_F21TRJ_256_nibble_h[vj] = ((RTRJ_x_F21TRJ_256_nibble[vi / 2][vj] >> 4) & l_mask);
                     }
                 }
 

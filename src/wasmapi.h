@@ -1,7 +1,6 @@
 #ifndef WASM_API_H
 #define WASM_API_H
 
-#define NO_MT4B
 #include "snova.h"
 
 #define CRYPTO_PUBLICKEYBYTES bytes_pk

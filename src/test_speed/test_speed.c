@@ -2,7 +2,7 @@
 
 #define NO_MT4B
 #include "../snova.h"
-#include "../util/util.h"
+#include "../test/util.h"
 #include "../nistkat/rng.h"
 #include "analysis.h"
 #include "cycles.h"
@@ -33,7 +33,6 @@ double get_cpu_f(void) {
 }
 
 int main() {
-    snova_init();
     double CPU_CLOCK = get_cpu_f();
     uint8_t array_digest[64];
     uint8_t array_signature1[bytes_signature + bytes_salt];
