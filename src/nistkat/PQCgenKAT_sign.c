@@ -40,8 +40,6 @@ main()
     int                 done;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
-
-    snova_init();
     
     // Create the REQUEST file
 #if sk_is_seed

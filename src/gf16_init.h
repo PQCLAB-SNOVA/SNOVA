@@ -3,8 +3,6 @@
 #define GF16_INIT_H
 #include "gf16.h"
 
-int gf16_tables_is_init = 0;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +10,8 @@ extern "C" {
 /**
  * init gf16 tables
  */
-void init_gf16_tables(void) {
+static void init_gf16_tables(void) {
+    static int gf16_tables_is_init = 0;
     if (gf16_tables_is_init) {
         return;
     }

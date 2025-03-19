@@ -1,0 +1,32 @@
+name: SNOVA_29_6_5_SHAKE
+type: signature
+claimed-nist-level: 5
+length-public-key: 2716
+length-secret-key: 48
+length-signature: 454
+nistkat-sha256: ca064a64dff436a65fa67770222241b88c582bbdb038ad41d05ea32a42463278
+principal-submitters:
+  - SNOVA team
+implementations:
+  - name: opt
+    version: round2
+    folder_name: .
+    compile_opts: -DOPTIMISATION=1 -DNIST_LEVEL=1 -Dv_SNOVA=29 -Do_SNOVA=6 -Dl_SNOVA=5 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=1 -DSNOVA_LIBOQS
+    signature_keypair: _snova_29_6_5_shake_ssk_opt_keypair
+    signature_signature: _snova_29_6_5_shake_ssk_opt_sign
+    signature_verify: _snova_29_6_5_shake_ssk_opt_verify
+    sources: LICENSE src/oqs_snova.c src/gf16_init.h src/namespace.h src/snova.c src/snova_kernel.h src/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_common.c src/gf16.h src/gf16_matrix_inline.h src/snova_aes.c src/snova_common.h src/aes/aes_local.h
+  - name: avx2
+    version: round2
+    folder_name: .
+    compile_opts: -DOPTIMISATION=2 -DNIST_LEVEL=1 -Dv_SNOVA=29 -Do_SNOVA=6 -Dl_SNOVA=5 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=1 -DSNOVA_LIBOQS
+    signature_keypair: _snova_29_6_5_shake_ssk_avx2_keypair
+    signature_signature: _snova_29_6_5_shake_ssk_avx2_sign
+    signature_verify: _snova_29_6_5_shake_ssk_avx2_verify
+    sources: LICENSE src/oqs_snova.c src/gf16_init.h src/namespace.h src/snova.c src/snova_kernel.h src/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_common.c src/gf16.h src/gf16_matrix_inline.h src/snova_aes.c src/snova_common.h src/aes/aes_local.h
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2

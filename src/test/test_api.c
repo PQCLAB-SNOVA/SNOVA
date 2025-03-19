@@ -1,13 +1,12 @@
 #include <stdio.h>
 
 #include "../api.h"
-#include "../util/util.h"
+#include "util.h"
 #include "../nistkat/rng.h"
 
 #define text_len 999
 
 int main() {
-    snova_init();
     uint8_t pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     uint8_t text[text_len] = {0};
     uint8_t sm[CRYPTO_BYTES + text_len];

@@ -1,13 +1,11 @@
 #include <stdio.h>
 
-#define NO_MT4B
 #include "../deriv_params.h"
 #include "../snova.h"
-#include "../util/util.h"
+#include "util.h"
 #include "../nistkat/rng.h"
 
 int main() {
-    snova_init();
     uint8_t array_digest[64];
     uint8_t array_signature1[bytes_signature + bytes_salt];
     uint8_t array_signature2[bytes_signature + bytes_salt];

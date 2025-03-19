@@ -11,7 +11,7 @@
 /**
  * Generate private key (F part)
  */
-void gen_F_opt(map_group2 *map2, map_group1 *map1, T12_t T12)
+static void gen_F_opt(map_group2 *map2, map_group1 *map1, T12_t T12)
 {
     uint32_t xF11[m_SNOVA * lsq_SNOVA] = {0};
     uint32_t xT12[v_SNOVA * o_SNOVA * lsq_SNOVA] = {0};
@@ -109,7 +109,7 @@ void gen_F_opt(map_group2 *map2, map_group1 *map1, T12_t T12)
  * @param P21 - input
  * @param F12 - input
  */
-void gen_P22_opt(P22_byte_t outP22, T12_t T12, P21_t P21, F12_t F12)
+static void gen_P22_opt(P22_byte_t outP22, T12_t T12, P21_t P21, F12_t F12)
 {
     uint32_t xT12[v_SNOVA * o_SNOVA * lsq_SNOVA];
     uint32_t xF12[v_SNOVA * o_SNOVA * lsq_SNOVA];
@@ -175,7 +175,7 @@ void gen_P22_opt(P22_byte_t outP22, T12_t T12, P21_t P21, F12_t F12)
 /**
  * Computes signature
  */
-int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
+static int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
                          uint64_t bytes_digest, uint8_t *array_salt,
                          Aalpha_t Aalpha, Balpha_t Balpha, Qalpha1_t Qalpha1,
                          Qalpha2_t Qalpha2, T12_t T12, F11_t F11, F12_t F12,
@@ -598,7 +598,7 @@ int sign_digest_core_opt(uint8_t *pt_signature, const uint8_t *digest,
 /**
  * Verifies signature
  */
-int verify_signture_opt_core(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const public_key_expand *pkx)
+static int verify_signture_opt_core(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const public_key_expand *pkx)
 {
     uint8_t hash_in_bytes[bytes_hash];
     uint8_t signed_hash[bytes_hash];
@@ -849,13 +849,13 @@ int verify_signture_opt_core(const uint8_t *pt_digest, uint64_t bytes_digest, co
     return result;
 }
 
-int verify_signture_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const uint8_t *pk) {
+static int verify_signture_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const uint8_t *pk) {
     public_key_expand pkx;
     expand_public_core(&pkx, pk);
     return verify_signture_opt_core(pt_digest, bytes_digest, pt_signature, &pkx);
 }
 
-int verify_signture_pkx_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const uint8_t *pkx_pck) {
+static int verify_signture_pkx_opt(const uint8_t *pt_digest, uint64_t bytes_digest, const uint8_t *pt_signature, const uint8_t *pkx_pck) {
     public_key_expand pkx_unpck;
     pkx_unpack(&pkx_unpck, (public_key_expand_pack *)pkx_pck);
     return verify_signture_opt_core(pt_digest, bytes_digest, pt_signature, &pkx_unpck);

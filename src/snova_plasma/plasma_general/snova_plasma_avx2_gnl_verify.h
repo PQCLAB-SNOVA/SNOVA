@@ -57,11 +57,11 @@ static inline void evaluation_avx2_vtl(
             // nibble splite
             for (int ni = 0; ni < rank; ++ni) {
                 for (int nk = 0; nk < vtl_len; ++nk) {
-                    AxS_tr_256[alpha + 1][ni][nk] = _mm256_srli_epi16(AxS_tr_256[alpha][ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    AxS_tr_256[alpha][ni][nk] &= _mm256_set1_epi8(0x0f);
+                    AxS_tr_256[alpha + 1][ni][nk] = (AxS_tr_256[alpha][ni][nk] >> 4) & l_mask;
+                    AxS_tr_256[alpha][ni][nk] &= l_mask;
 
-                    Q2xS_tr_256[alpha + 1][ni][nk] = _mm256_srli_epi16(Q2xS_tr_256[alpha][ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    Q2xS_tr_256[alpha][ni][nk] &= _mm256_set1_epi8(0x0f);
+                    Q2xS_tr_256[alpha + 1][ni][nk] = (Q2xS_tr_256[alpha][ni][nk] >> 4) & l_mask;
+                    Q2xS_tr_256[alpha][ni][nk] &= l_mask;
                 }
             }
         }
@@ -95,11 +95,11 @@ static inline void evaluation_avx2_vtl(
             // nibble splite
             for (int ni = 0; ni < rank_floor2; ni +=2) {
                 for (int nk = 0; nk < vtl_len; ++nk) {
-                    L_tr_J_256[ni + 1][nk] = _mm256_srli_epi16(L_tr_J_256[ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    L_tr_J_256[ni][nk] &= _mm256_set1_epi8(0x0f);
+                    L_tr_J_256[ni + 1][nk] = (L_tr_J_256[ni][nk] >> 4) & l_mask;
+                    L_tr_J_256[ni][nk] &= l_mask;
 
-                    R_tr_J_256[mj][alpha][ni + 1][nk] = _mm256_srli_epi16(R_tr_J_256[mj][alpha][ni][nk], 4) & _mm256_set1_epi8(0x0f);
-                    R_tr_J_256[mj][alpha][ni][nk] &= _mm256_set1_epi8(0x0f);
+                    R_tr_J_256[mj][alpha][ni + 1][nk] = (R_tr_J_256[mj][alpha][ni][nk] >> 4) & l_mask;
+                    R_tr_J_256[mj][alpha][ni][nk] &= l_mask;
                 }
             }
             
@@ -112,7 +112,7 @@ static inline void evaluation_avx2_vtl(
                 __m256i* L_J_h_256 = (__m256i *)L_J[ni + 1];
                 __m256i* L_J_256 = (__m256i *)L_J_nibble[mj][alpha][ni / 2];
                 for (int nk = 0; nk < vtl_len; ++nk) {
-                    L_J_256[nk] = L_J_l_256[nk] ^ _mm256_slli_epi16(L_J_h_256[nk], 4);
+                    L_J_256[nk] = L_J_l_256[nk] ^ (L_J_h_256[nk] << 4);
                 }
             }
         }
@@ -154,8 +154,8 @@ static inline void evaluation_avx2_vtl(
             __m256i LJxPJ_256_nibble[rank_next2 / 2][vtl_len] = {0};
 
             // LJ x PJ, Main loop (n_SNOVA^2 * rank^3 times)
-            for (int ni = 0; ni < rank_next2 / 2; ++ni) {
-                for (int nk = 0; nk < n_SNOVA * rank; ++nk) {    
+            for (int nk = 0; nk < n_SNOVA * rank; ++nk) {
+                for (int ni = 0; ni < rank_next2 / 2; ++ni) {
                     __m256i k_lh = mtk2_16[L_J_nibble[mi][alpha][ni][nk]];
                     for (int nj = 0; nj < vtl_len; ++nj) {
                         LJxPJ_256_nibble[ni][nj] ^= _mm256_shuffle_epi8(k_lh, P_J_256[nk][nj]);
@@ -168,8 +168,8 @@ static inline void evaluation_avx2_vtl(
                 __m256i* LJxPJ_256_nibble_l = LJxPJ_256[ni];
                 __m256i* LJxPJ_256_nibble_h = LJxPJ_256[ni + 1];
                 for (int nj = 0; nj < vtl_len; ++nj) {
-                    LJxPJ_256_nibble_l[nj] = LJxPJ_256_nibble[ni / 2][nj] & _mm256_set1_epi8(0x0f);
-                    LJxPJ_256_nibble_h[nj] = (_mm256_srli_epi16(LJxPJ_256_nibble[ni / 2][nj], 4) & _mm256_set1_epi8(0x0f));
+                    LJxPJ_256_nibble_l[nj] = LJxPJ_256_nibble[ni / 2][nj] & l_mask;
+                    LJxPJ_256_nibble_h[nj] = ((LJxPJ_256_nibble[ni / 2][nj] >> 4) & l_mask);
                 }
             }
 
@@ -180,13 +180,11 @@ static inline void evaluation_avx2_vtl(
 #endif
 
             // (LJ x PJ) x RJ, Secondary loop (n_SNOVA * rank^3 times)
-            for (int ni = 0; ni < rank; ++ni) {   
-                for (int nj = 0; nj < rank; ++nj) {
-                    __m256i tmp_256 = _mm256_setzero_si256();
-                    for (int nk = 0; nk < vtl_len; ++nk) {
-                        gf16_32_mul_32_add((uint8_t *)(LJxPJ_256[ni] + nk), (uint8_t *)(R_tr_J_256[mi][alpha][nj] + nk), (uint8_t *)(&tmp_256));
+            for (int nk = 0; nk < vtl_len; ++nk) {
+                for (int ni = 0; ni < rank; ++ni) {
+                    for (int nj = 0; nj < rank; ++nj) {
+                        gf16_32_mul_32_add((uint8_t *)(LJxPJ_256[ni] + nk), (uint8_t *)(R_tr_J_256[mi][alpha][nj] + nk), (uint8_t *)(&h_256[mi_prime][ni][nj]));
                     }
-                    h_256[mi_prime][ni][nj] ^= tmp_256;
                 }
             }
         }

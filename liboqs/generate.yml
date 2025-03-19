@@ -1,0 +1,115 @@
+# This is the master document for ID interoperability for KEM IDs, p-hybrid KEM IDs, SIG (O)IDs
+# Next free plain KEM ID: 0x024D, p-hybrid: 0x2F4F, X-hybrid: 0x2FB9
+# Switch to using unassigned code points as per https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8:
+# Next free: 65027 (see https://github.com/open-quantum-safe/oqs-provider/issues/561)
+kems:
+  -
+    family: 'BIKE'
+    name_group: 'bike1l1fo'
+    bit_security: 128
+    extra_nids:
+      old:
+        - implementation_version: NIST Round 2 submission
+          nist-round: 2
+          nid: '0x0223'
+        - implementation_version: NIST Round 2 submission
+          nist-round: 2
+          hybrid_group: secp256_r1
+          nid: '0x2F23'
+        - implementation_version: NIST Round 2 submission
+          nist-round: 2
+          hybrid_group: "x25519"
+          nid: '0x2F28'
+    oqs_alg: 'OQS_KEM_alg_bike1_l1_fo'
+# Next free signature ID: 0xff0a
+sigs:
+  # -
+    # iso (1)
+    # identified-organization (3)
+    # reserved (9999)
+    # oqs_sig_default (1)
+    # disabled
+    #variants:
+    #  -
+    #    name: 'oqs_sig_default'
+    #    pretty_name: 'OQS Default Signature Algorithm'
+    #    oqs_meth: 'OQS_SIG_alg_default'
+    #    oid: '1.3.9999.1.1'
+    #    code_point: '0xfe00'
+    #    enable: true
+    #    mix_with: [{'name': 'p256',
+    #                'pretty_name': 'ECDSA p256',
+    #                'oid': '1.3.9999.1.2',
+    #                'code_point': '0xfe01'},
+    #               {'name': 'rsa3072',
+    #                'pretty_name': 'RSA3072',
+    #                'oid': '1.3.9999.1.3',
+    #                'code_point': '0xfe02'}]
+    #    composite:[{'name': 'p256',
+    #                'pretty_name': 'ECDSA p256',
+    #                'security': '128',
+    #                'oid': '2.16.840.1.114027.80.1.8'}]
+    # The Composite OIDs are kept up to date by @feventura (Entrust)
+    # These are prototype OIDs and are in line with draft-ietf-lamps-pq-composite-sigs-02
+    # OID scheme for composite variants:
+    # joint-iso-itu-t (2)
+    # country (16)
+    # us (840)
+    # organization (1)
+    # entrust (114027)
+    # algorithm (80)
+    # composite (8)
+    # signature (1)
+  -
+    family: 'SNOVA'
+    variants:
+      # Use alias name in openssl
+      -
+        name: 'snova54'
+        pretty_name: 'SNOVA_24_5_4'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_24_5_4_SHAKE'
+        oid: '2.16.12345.1'
+        code_point: '0xff31'
+        enable: true
+      -
+        name: 'snova54x'
+        pretty_name: 'SNOVA_24_5_4_ESK'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_24_5_4_esk'
+        oid: '2.16.12346.1'
+        code_point: '0xff41'
+        enable: true
+      -
+        name: 'snova172'
+        pretty_name: 'SNOVA_37_17_2'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_37_17_2'
+        oid: '2.16.12345.2'
+        code_point: '0xff32'
+        enable: true
+      -
+        name: 'snova55'
+        pretty_name: 'SNOVA_24_5_5'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_24_5_5'
+        oid: '2.16.12345.3'
+        code_point: '0xff33'
+        enable: true
+      -
+        name: 'snova252'
+        pretty_name: 'SNOVA_56_25_2'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_56_25_2'
+        oid: '2.16.12345.4'
+        code_point: '0xff34'
+        enable: true
+      -
+        name: 'snova65'
+        pretty_name: 'SNOVA_29_6_5'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_29_6_5'
+        oid: '2.16.12345.5'
+        code_point: '0xff35'
+        enable: true
+      -
+        name: 'snova332'
+        pretty_name: 'SNOVA_75_33_2'
+        oqs_meth: 'OQS_SIG_alg_snova_SNOVA_75_33_2'
+        oid: '2.16.12345.6'
+        code_point: '0xff36'
+        enable: true

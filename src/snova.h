@@ -1,10 +1,26 @@
 #ifndef SNOVA_H
 #define SNOVA_H
 
-#include "shake/snova_shake.h"
-
 #include "deriv_params.h"
+#include "namespace.h"
 #include "gf16_matrix.h"
+#include "snova_common.h"
+
+#if SNOVA_LIBOQS
+#include <oqs/sha3.h>
+#define Keccak_HashInstance OQS_SHA3_shake256_inc_ctx
+#define Keccak_HashInitialize_SHAKE256 OQS_SHA3_shake256_inc_init
+#define Keccak_HashUpdate(a, b, c) OQS_SHA3_shake256_inc_absorb(a, b, (c) / 8)
+#define Keccak_HashFinal(a, b) OQS_SHA3_shake256_inc_finalize(a)
+#define Keccak_HashSqueeze(a, b, c)                   \
+    {                                                 \
+        OQS_SHA3_shake256_inc_squeeze(b, (c) / 8, a); \
+        OQS_SHA3_shake256_inc_ctx_release(a);         \
+    }
+#define _KeccakHashInterface_h_
+#else
+#include "shake/KeccakHash.h"
+#endif
 
 typedef gf16m_t P11_t[m_SNOVA][v_SNOVA][v_SNOVA];
 typedef gf16m_t P12_t[m_SNOVA][v_SNOVA][o_SNOVA];
@@ -80,11 +96,6 @@ typedef struct {
 extern "C" {
 #endif
 
-void shake256(const uint8_t* pt_seed_array, int input_bytes, uint8_t* pt_output_array,
-              int output_bytes);
-
-void snova_init(void);
-
 void generate_keys_ssk(uint8_t* pk, uint8_t* ssk,
                        const uint8_t* pkseed, const uint8_t* skseed);
 void generate_keys_esk(uint8_t* pk, uint8_t* esk,
@@ -100,12 +111,11 @@ void sign_digest_esk(uint8_t* pt_signature, const uint8_t* digest,
                      uint64_t bytes_digest, uint8_t* array_salt,
                      const uint8_t* esk);
 
-void expand_public_pack(uint8_t* pkx_pck, const uint8_t *pk);
-
 int verify_signture(const uint8_t* pt_digest, uint64_t bytes_digest,
                     const uint8_t* pt_signature, const uint8_t* pk);
 int verify_signture_pkx(const uint8_t* pt_digest, uint64_t bytes_digest,
                             const uint8_t* pt_signature, const uint8_t* pk);
+void expand_public_pack(uint8_t *pkx, const uint8_t *pk);
 
 #ifdef __cplusplus
 }

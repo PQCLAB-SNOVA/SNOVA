@@ -17,6 +17,7 @@ uint8_t fixed_abq[4 * m_SNOVA * alpha_SNOVA * lsq_SNOVA] = {0};
 #else
     #define snova_shake snova_shake_ref
     #include "snova_kernel.h"
+    #include "snova_ref.h"
     #define gen_F gen_F_ref
     #define gen_P22 gen_P22_ref
     #define sign_digest_core sign_digest_core_ref
@@ -26,7 +27,7 @@ uint8_t fixed_abq[4 * m_SNOVA * alpha_SNOVA * lsq_SNOVA] = {0};
 
 
 #if FIXED_ABQ
-void gen_ABQ(const char *abq_seed)
+static void gen_ABQ(const char *abq_seed)
 {
     uint8_t rng_out[m_SNOVA * alpha_SNOVA * (lsq_SNOVA + l_SNOVA)];
     uint8_t q12[2 * m_SNOVA * alpha_SNOVA * l_SNOVA];
@@ -69,7 +70,7 @@ void gen_ABQ(const char *abq_seed)
 /**
  * SNOVA init
  */
-void snova_init(void) {
+static void snova_init(void) {
     static int first_time = 1;
     if (first_time) {
         first_time = 0;
@@ -92,12 +93,27 @@ void snova_init(void) {
  * @param pk_seed - pointer to input public key seed.
  * @param sk_seed - pointer to input private key elements.
  */
-void generate_keys_core(snova_key_elems* key_elems, const uint8_t* pk_seed, const uint8_t* sk_seed) {
+static void generate_keys_core(snova_key_elems* key_elems, const uint8_t* pk_seed, const uint8_t* sk_seed) {
     gen_seeds_and_T12(key_elems->T12, sk_seed);
     memcpy(key_elems->pk.pt_public_key_seed, pk_seed, seed_length_public);
     gen_A_B_Q_P(&(key_elems->map1), pk_seed);
     gen_F(&(key_elems->map2), &(key_elems->map1), key_elems->T12);
     gen_P22(key_elems->pk.P22, key_elems->T12, key_elems->map1.P21, key_elems->map2.F12);
+}
+
+int expand_secret(uint8_t *esk, const uint8_t *sk)
+{
+    const uint8_t *pk_seed = sk;
+    const uint8_t *sk_seed = sk + seed_length_public;
+    snova_key_elems key_elems;
+
+    generate_keys_core(&key_elems, pk_seed, sk_seed);
+    sk_pack(esk, &key_elems, sk_seed);
+
+    // Clear Secret!
+    snova_set_zero(&key_elems, sizeof(key_elems));
+
+    return 0;
 }
 
 /**

@@ -7,10 +7,8 @@
 #define gf16_get_add(a, b) ((a) ^ (b))
 #define gf16_get_mul(a, b) (mt((a), (b)))
 
-#ifndef NO_MT4B
-static uint8_t mt4b[256] __attribute__((aligned(32))) = {0};
-static uint8_t inv4b[16] __attribute__((aligned(32))) = {0};
-#endif
+extern uint8_t mt4b[256] __attribute__((aligned(32)));
+extern uint8_t inv4b[16] __attribute__((aligned(32)));
 
 typedef uint8_t gf16_t;
 

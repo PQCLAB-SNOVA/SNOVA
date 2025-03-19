@@ -9,6 +9,7 @@ __m256i* mtk2_16 = (__m256i*)mt4b2_16;
 
 // inverse table, runs in constant time
 static __m256i avx_inv_table = {0};
+static __m256i l_mask = {0};
 
 // Table used by vtl_ct_multtab
 static __m256i vtl_multmask1, vtl_multmask2, vtl_multmask4, vtl_multmask8;
@@ -29,6 +30,8 @@ int init_avx_table() {
             }
         }
     }
+
+    l_mask = _mm256_set1_epi8(0x0f);
 
     vtl_multmask1 = _mm256_set1_epi32(1);
     vtl_multmask2 = _mm256_set1_epi32(2);

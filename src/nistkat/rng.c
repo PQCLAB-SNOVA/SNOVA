@@ -9,8 +9,11 @@ You are solely responsible for determining the appropriateness of using and dist
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "rng.h"
-#include "../aes/snova_aes.h"
+
+int AES_128_CTR(unsigned char *output, size_t outputByteLen, const unsigned char *input, size_t inputByteLen);
+void AES_256_ECB(const unsigned char *key, const uint8_t *input, unsigned char *output);
 
 AES256_CTR_DRBG_struct  DRBG_ctx;
 
