@@ -24,13 +24,12 @@ void snova_set_zero(void *ptr, size_t size);
 
 #define SNOVA_CLEAR_BYTE(x, byte) snova_set_zero(x, byte);
 
-void convert_bytes_to_GF16s(const uint8_t* byte_array, uint8_t* gf16_array, int num_of_GF16s);
-void convert_GF16s_to_bytes(uint8_t* byte_array, const uint8_t* gf16_array, int num_of_GF16s);
-void convert_bytes_to_GF16s_cut_in_half(const uint8_t* byte_array, uint8_t* gf16_array, int num_of_GF16s);
-void convert_GF16s_to_bytes_merger_in_half(uint8_t* byte_array, uint8_t* gf16_array, int num_of_GF16s);
+void convert_bytes_to_GF16s(const uint8_t *byte_array, uint8_t *gf16_array, int num_of_GF16s);
+void convert_GF16s_to_bytes(uint8_t *byte_array, const uint8_t *gf16_array, int num_of_GF16s);
+void convert_bytes_to_GF16s_cut_in_half(const uint8_t *byte_array, uint8_t *gf16_array, int num_of_GF16s);
+void convert_GF16s_to_bytes_merger_in_half(uint8_t *byte_array, uint8_t *gf16_array, int num_of_GF16s);
 
-void shake256(const uint8_t* pt_seed_array, int input_bytes, uint8_t* pt_output_array, int output_bytes);
-void snova_shake_ref(const uint8_t *seed, size_t input_bytes, uint64_t *output, size_t output_bytes);
-void snova_shake_opt(const uint8_t *seed, size_t input_bytes, uint64_t *output, size_t output_bytes);
+void shake256(const uint8_t *pt_seed_array, int input_bytes, uint8_t *pt_output_array, int output_bytes);
+void snova_shake(const uint8_t *seed, size_t input_bytes, uint64_t *data, size_t num_bytes);
 
 #endif
