@@ -116,15 +116,14 @@ void snova_shake(const uint8_t *pt_seed_array, size_t input_bytes, uint64_t *dat
 
 void KeccakP1600times8_PermuteAll_24rounds(void *state);
 void KeccakP1600times4_PermuteAll_24rounds(void *state);
- 
+
 /**
  * Squeeze bytes in parallel.
  */
 void snova_shake(const uint8_t *seed, size_t input_bytes, uint64_t *data, size_t num_bytes) {
 	uint64_t keccak_instance[25] = {0};
 	uint8_t prepared_state[200 * PARALLELISM] __attribute__((aligned(8)));
-	uint64_t states[25 * PARALLELISM];
-	uint64_t *states64 = states;
+	uint64_t states[25 * PARALLELISM] __attribute__((aligned(PARALLELISM * 8)));
 	uint64_t *data64 = data;
 
 	// Align to uint64_t
@@ -149,7 +148,7 @@ void snova_shake(const uint8_t *seed, size_t input_bytes, uint64_t *data, size_t
 		uint32_t byteIOIndex = input_bytes;
 		memcpy(states, prepared_state, PARALLELISM * 200);
 		for (int idx = 0; idx < PARALLELISM; idx++) {
-			states64[byteIOIndex * PARALLELISM / 8 + idx] ^= block;
+			states[byteIOIndex * PARALLELISM / 8 + idx] ^= block;
 			block++;
 		}
 
@@ -169,7 +168,7 @@ void snova_shake(const uint8_t *seed, size_t input_bytes, uint64_t *data, size_t
 				bytes = 168;
 			}
 
-			uint64_t *source64 = states64 + idx;
+			uint64_t *source64 = states + idx;
 			for (size_t idx2 = 0; idx2 < bytes / 8; idx2++) {
 				*data64 = *source64;
 				source64 += PARALLELISM;

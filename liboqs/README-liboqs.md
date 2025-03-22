@@ -14,7 +14,7 @@ Download liboqs
 ```
 git clone https://github.com/open-quantum-safe/liboqs
 cd liboqs
-git checkout fe11b6a9fde5edeaa39b0371ef7dd17ec6225b38
+git checkout 19f7283b59df16c887275d6a7192e9126a0835a1
 ```
 
 Add SNOVA to the algorithms known to liboqs:
