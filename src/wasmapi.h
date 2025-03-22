@@ -41,24 +41,24 @@ EM_PORT_API(int) getSaltLength(void);
 
 EM_PORT_API(int) getSignLength(void);
 
-EM_PORT_API(void) safeFree(void* ptr, size_t size);
+EM_PORT_API(void) safeFree(void *ptr, size_t size);
 
-EM_PORT_API(void) genKeyPairSsk(uint8_t* pk, uint8_t* ssk, const uint8_t* seed);
+EM_PORT_API(void) genKeyPairSsk(uint8_t *pk, uint8_t *ssk, const uint8_t *seed);
 
-EM_PORT_API(void) genKeyPairEsk(uint8_t* pk, uint8_t* esk, const uint8_t* seed);
+EM_PORT_API(void) genKeyPairEsk(uint8_t *pk, uint8_t *esk, const uint8_t *seed);
 
-EM_PORT_API(void) genPkWithSsk(uint8_t* pk, uint8_t* ssk);
+EM_PORT_API(void) genPkWithSsk(uint8_t *pk, uint8_t *ssk);
 
-EM_PORT_API(void) genPkWithEsk(uint8_t* pk, uint8_t* esk);
+EM_PORT_API(void) genPkWithEsk(uint8_t *pk, uint8_t *esk);
 
 EM_PORT_API(void) signWithSsk(uint8_t *sm, const uint8_t *m, const size_t mlen, uint8_t *salt, const uint8_t *ssk);
 
-EM_PORT_API(void) signWithEsk(uint8_t *sm, const uint8_t *m, const size_t mlen, uint8_t *salt,const uint8_t *esk);
+EM_PORT_API(void) signWithEsk(uint8_t *sm, const uint8_t *m, const size_t mlen, uint8_t *salt, const uint8_t *esk);
 
-EM_PORT_API(int) verify(const uint8_t* sm, const uint8_t *m, const size_t mlen, const uint8_t* pk);
+EM_PORT_API(int) verify(const uint8_t *sm, const uint8_t *m, const size_t mlen, const uint8_t *pk);
 
-EM_PORT_API(void) expandPublicPack(uint8_t* pkx_pck, const uint8_t *pk);
+EM_PORT_API(void) expandPublicPack(uint8_t *pkx_pck, const uint8_t *pk);
 
-EM_PORT_API(int) verifyPkx(const uint8_t* sm, const uint8_t *m, const size_t mlen, const uint8_t* pkx);
+EM_PORT_API(int) verifyPkx(const uint8_t *sm, const uint8_t *m, const size_t mlen, const uint8_t *pkx);
 
 #endif

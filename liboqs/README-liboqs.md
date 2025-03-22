@@ -6,7 +6,7 @@ Building:
 
 Download SNOVA with the liboqs integration
 ```
-git clone https://github.com/vacuas/SNOVA
+git clone https://github.com/vacuas/SNOVA-OQS SNOVA
 export SNOVA_DIR=$(pwd)/SNOVA
 ```
 
@@ -14,7 +14,7 @@ Download liboqs
 ```
 git clone https://github.com/open-quantum-safe/liboqs
 cd liboqs
-git checkout 8ee6039c741d9fc6fd7a13bace39f9381d877c94
+git checkout fe11b6a9fde5edeaa39b0371ef7dd17ec6225b38
 ```
 
 Add SNOVA to the algorithms known to liboqs:

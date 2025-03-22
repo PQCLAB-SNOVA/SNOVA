@@ -17,6 +17,7 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-ari
 else
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=$(ARCH) -mtune=$(ARCH)
 endif
+CFLAGS += -I. -I./snova_plasma -I./snova_plasma/plasma_general
 
 BUILD_OUT_PATH = build/
 BUILD_LIBO_OUT_PATH = build_libo

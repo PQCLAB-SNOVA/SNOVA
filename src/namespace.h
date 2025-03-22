@@ -60,10 +60,8 @@
 #define ct_is_negative SNOVA_NAMESPACE(ct_is_negative)
 #define ct_xgf16_is_not_zero SNOVA_NAMESPACE(ct_ct_xgf16_is_not_zerois_negative)
 #define ct_gf16_is_not_zero SNOVA_NAMESPACE(ct_gf16_is_not_zero)
-#define snova_set_zero SNOVA_NAMESPACE(set_zero)
-
-#define snova_shake_ref SNOVA_NAMESPACE(shake_ref)
-#define snova_shake_opt SNOVA_NAMESPACE(shake_opt)
+#define snova_set_zero SNOVA_NAMESPACE(snova_set_zero)
+#define snova_shake SNOVA_NAMESPACE(snova_shake)
 
 #define shake256 SNOVA_NAMESPACE(shake256)
 #define convert_bytes_to_GF16s SNOVA_NAMESPACE(convert_bytes_to_GF16s)

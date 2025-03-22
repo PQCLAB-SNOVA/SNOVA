@@ -7,7 +7,7 @@ website: https://snova.pqclab.org/
 nist-round: 2
 spec-version: Round 2
 primary-upstream:
-  source: https://github.com/vacuas/S/commit/85edbe0cec59d1e8e3c55a9d8c059f7adaa28fb4
+  source: https://github.com/PQCLAB-SNOVA/SNOVA/commit/d5e4bc8708fa50d123bc5777353f8810c099a2ac
   spdx-license-identifier: MIT
 parameter-sets:
 - name: SNOVA_24_5_4
@@ -34,7 +34,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_24_5_4_SHAKE
-  alias: snova54
+  # alias: snova54
   oqs_alg: OQS_SIG_alg_SNOVA_24_5_4_SHAKE
   claimed-nist-level: 1
   claimed-security: EUF-CMA
@@ -57,7 +57,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_24_5_4_esk
-  alias: snova54x
+  # alias: snova54x
   oqs_alg: OQS_SIG_alg_snova_24_5_4_esk
   claimed-nist-level: 1
   claimed-security: EUF-CMA
@@ -103,7 +103,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_37_17_2
-  alias: snova172
+  # alias: snova172
   oqs_alg: OQS_SIG_alg_SNOVA_37_17_2
   claimed-nist-level: 1
   claimed-security: EUF-CMA
@@ -127,7 +127,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_25_8_3
-  alias: snova83
+  # alias: snova83
   oqs_alg: OQS_SIG_alg_SNOVA_25_8_3
   claimed-nist-level: 1
   claimed-security: EUF-CMA
@@ -151,7 +151,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_56_25_2
-  alias: snova252
+  # alias: snova252
   oqs_alg: OQS_SIG_alg_snova_56_25_2
   claimed-nist-level: 3
   claimed-security: EUF-CMA
@@ -175,7 +175,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_49_11_3
-  alias: snova113
+  # alias: snova113
   oqs_alg: OQS_SIG_alg_snova_49_11_3
   claimed-nist-level: 3
   claimed-security: EUF-CMA
@@ -199,7 +199,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_37_8_4
-  alias: snova84
+  # alias: snova84
   oqs_alg: OQS_SIG_alg_snova_37_8_4
   claimed-nist-level: 3
   claimed-security: EUF-CMA
@@ -223,7 +223,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_24_5_5
-  alias: snova55
+  # alias: snova55
   oqs_alg: OQS_SIG_alg_SNOVA_24_5_5
   claimed-nist-level: 3
   claimed-security: EUF-CMA
@@ -247,7 +247,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_75_33_2
-  alias: snova332
+  # alias: snova332
   oqs_alg: OQS_SIG_alg_snova_75_33_2
   claimed-nist-level: 5
   claimed-security: EUF-CMA
@@ -271,7 +271,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_66_15_3
-  alias: snova153
+  # alias: snova153
   oqs_alg: OQS_SIG_alg_snova_66_15_3
   claimed-nist-level: 5
   claimed-security: EUF-CMA
@@ -295,7 +295,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_60_10_4
-  alias: snova104
+  # alias: snova104
   oqs_alg: OQS_SIG_alg_snova_60_10_4
   claimed-nist-level: 5
   claimed-security: EUF-CMA
@@ -319,7 +319,7 @@ parameter-sets:
     no-secret-dependent-branching-checked-by-valgrind: false
     large-stack-usage: false
 - name: SNOVA_29_6_5
-  alias: snova65
+  # alias: snova65
   oqs_alg: OQS_SIG_alg_SNOVA_29_6_5
   claimed-nist-level: 5
   claimed-security: EUF-CMA
