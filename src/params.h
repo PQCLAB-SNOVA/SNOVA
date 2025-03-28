@@ -2,7 +2,11 @@
 #define PARAMS_H
 
 #ifndef sk_is_seed
-#define sk_is_seed 0
+#define sk_is_seed 1
+#endif
+
+#ifndef PK_EXPAND_SHAKE
+#define PK_EXPAND_SHAKE 1
 #endif
 
 #ifndef v_SNOVA
