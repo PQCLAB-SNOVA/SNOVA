@@ -6,7 +6,7 @@ Building:
 
 Download SNOVA with the liboqs integration
 ```
-git clone https://github.com/vacuas/SNOVA
+git clone https://github.com/vacuas/SNOVA-OQS SNOVA
 export SNOVA_DIR=$(pwd)/SNOVA
 ```
 
@@ -14,7 +14,7 @@ Download liboqs
 ```
 git clone https://github.com/open-quantum-safe/liboqs
 cd liboqs
-git checkout 8ee6039c741d9fc6fd7a13bace39f9381d877c94
+git checkout 6337a8424deae09aa835ddd920faff83a8f0e1d7
 ```
 
 Add SNOVA to the algorithms known to liboqs:
@@ -32,33 +32,18 @@ touch src/sig/snova/sig_snova_SNOVA_24_5_4_esk.c src/sig/snova/sig_snova_SNOVA_2
 touch src/sig/snova/sig_snova_SNOVA_37_17_2.c src/sig/snova/sig_snova_SNOVA_25_8_3.c
 touch src/sig/snova/sig_snova_SNOVA_56_25_2.c  src/sig/snova/sig_snova_SNOVA_49_11_3.c
 touch src/sig/snova/sig_snova_SNOVA_37_8_4.c src/sig/snova/sig_snova_SNOVA_24_5_5.c 
-touch src/sig/snova/sig_snova_SNOVA_75_33_2.c src/sig/snova/sig_snova_SNOVA_66_15_3.c
-touch src/sig/snova/sig_snova_SNOVA_60_10_4.c src/sig/snova/sig_snova_SNOVA_29_6_5.c
-touch docs/algorithms/sig/snova.md
+touch src/sig/snova/sig_snova_SNOVA_66_15_3.c src/sig/snova/sig_snova_SNOVA_60_10_4.c
+touch src/sig/snova/sig_snova_SNOVA_29_6_5.c docs/algorithms/sig/snova.md
 ```
 
 Generate the source using copy_from_upstream
 ```
-export LIBOQS_DIR=$(pwd) ; python3 scripts/copy_from_upstream/copy_from_upstream.py -k copy
-```
-
-Some edits to the test sources are needed as not all algorithms are enabled. Replace missing names in
-```
-    tests/example_kem.c
-    tests/vectors_kem.c
-    tests/vectors_sig.c
-```
-using
-```
-    OQS_KEM_alg_* -> OQS_KEM_alg_bike_l3
-    OQS_SIG_alg_* -> OQS_SIG_alg_snova_SNOVA_24_5_4
+export LIBOQS_DIR=$(pwd) ; cd scripts/copy_from_upstream ; python3 ./copy_from_upstream.py -k copy ; cd ../..
 ```
 
 Build and optionally install liboqs:
 ```
-rm -r build/ ; mkdir build ; cd build
-cmake -GNinja -DCMAKE_INSTALL_PREFIX=$(pwd)/../../liboqs.install ..
-ninja
+rm -r build/ ; mkdir build/ && cd build/ ; cmake -GNinja .. ; ninja
 ninja install
 ```
 
@@ -94,7 +79,7 @@ openssl list -signature-algorithms -provider-path _build/lib/ -provider oqsprovi
 
 Create private and public keys
 ```
-openssl genpkey -algorithm snova54 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
+openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
 openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider
 ```
 
@@ -112,7 +97,7 @@ openssl dgst -sha3-256 -verify public.pem -provider-path _build/lib/ -provider o
 
 Create keypair and view
 ```
-openssl genpkey -algorithm snova54 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
+openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
 openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider
 ```
 

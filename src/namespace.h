@@ -1,7 +1,7 @@
 // Put symbols in namespace for use in a library.
 // Only used by the liboqs integration
 
-#if !defined(SNOVA_NAMESPACE_H) && defined(SNOVA_LIBOQS)
+#ifndef SNOVA_NAMESPACE_H
 #define SNOVA_NAMESPACE_H
 
 #include <stdint.h>
@@ -48,6 +48,7 @@
 #define expand_public_key SNOVA_NAMESPACE(expand_public_key)
 #define expand_public_pack SNOVA_NAMESPACE(expand_public_pack)
 #define fixed_abq SNOVA_NAMESPACE(fixed_abq)
+#define sign_expand_ssk SNOVA_NAMESPACE(sign_expand_ssk)
 #define expand_secret SNOVA_NAMESPACE(expand_secret)
 #define snova_init SNOVA_NAMESPACE(snova_init)
 #define snova_plasma_init SNOVA_NAMESPACE(snova_plasma_init)
@@ -60,10 +61,8 @@
 #define ct_is_negative SNOVA_NAMESPACE(ct_is_negative)
 #define ct_xgf16_is_not_zero SNOVA_NAMESPACE(ct_ct_xgf16_is_not_zerois_negative)
 #define ct_gf16_is_not_zero SNOVA_NAMESPACE(ct_gf16_is_not_zero)
-#define snova_set_zero SNOVA_NAMESPACE(set_zero)
-
-#define snova_shake_ref SNOVA_NAMESPACE(shake_ref)
-#define snova_shake_opt SNOVA_NAMESPACE(shake_opt)
+#define snova_set_zero SNOVA_NAMESPACE(snova_set_zero)
+#define snova_shake SNOVA_NAMESPACE(snova_shake)
 
 #define shake256 SNOVA_NAMESPACE(shake256)
 #define convert_bytes_to_GF16s SNOVA_NAMESPACE(convert_bytes_to_GF16s)

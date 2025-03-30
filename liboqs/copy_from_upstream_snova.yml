@@ -1,5 +1,17 @@
 upstreams:
   -
+    name: oldpqclean
+    git_url: https://github.com/PQClean/PQClean.git
+    git_branch: master
+    git_commit: 8e220a87308154d48fdfac40abbb191ac7fce06a
+    kem_meta_path: 'crypto_kem/{pqclean_scheme}/META.yml'
+    sig_meta_path: 'crypto_sign/{pqclean_scheme}/META.yml'
+    kem_scheme_path: 'crypto_kem/{pqclean_scheme}'
+    sig_scheme_path: 'crypto_sign/{pqclean_scheme}'
+    patches: [pqclean-dilithium-arm-randomized-signing.patch, pqclean-kyber-armneon-shake-fixes.patch, pqclean-kyber-armneon-768-1024-fixes.patch, pqclean-kyber-armneon-variable-timing-fix.patch,
+    pqclean-kyber-armneon-asan.patch]
+    ignore: pqclean_sphincs-shake-256s-simple_aarch64, pqclean_sphincs-shake-256s-simple_aarch64, pqclean_sphincs-shake-256f-simple_aarch64, pqclean_sphincs-shake-192s-simple_aarch64, pqclean_sphincs-shake-192f-simple_aarch64, pqclean_sphincs-shake-128s-simple_aarch64, pqclean_sphincs-shake-128f-simple_aarch64
+  -
     name: pqclean
     git_url: https://github.com/PQClean/PQClean.git
     git_branch: master
@@ -8,8 +20,57 @@ upstreams:
     sig_meta_path: 'crypto_sign/{pqclean_scheme}/META.yml'
     kem_scheme_path: 'crypto_kem/{pqclean_scheme}'
     sig_scheme_path: 'crypto_sign/{pqclean_scheme}'
-    patches: []
+    patches: [pqclean-sphincs.patch]
     ignore: pqclean_sphincs-shake-256s-simple_aarch64, pqclean_sphincs-shake-256s-simple_aarch64, pqclean_sphincs-shake-256f-simple_aarch64, pqclean_sphincs-shake-192s-simple_aarch64, pqclean_sphincs-shake-192f-simple_aarch64, pqclean_sphincs-shake-128s-simple_aarch64, pqclean_sphincs-shake-128f-simple_aarch64, pqclean_kyber512_aarch64, pqclean_kyber1024_aarch64, pqclean_kyber768_aarch64, pqclean_dilithium2_aarch64, pqclean_dilithium3_aarch64, pqclean_dilithium5_aarch64
+  -
+    name: pqcrystals-kyber
+    git_url: https://github.com/pq-crystals/kyber.git
+    git_branch: master
+    git_commit: 441c0519a07e8b86c8d079954a6b10bd31d29efc
+    kem_meta_path: '{pretty_name_full}_META.yml'
+    kem_scheme_path: '.'
+    patches: [pqcrystals-kyber-yml.patch, pqcrystals-kyber-ref-shake-aes.patch, pqcrystals-kyber-avx2-shake-aes.patch]
+  -
+    name: mlkem-native
+    git_url: https://github.com/pq-code-package/mlkem-native.git
+    git_branch: v1.0.0-beta
+    git_commit: 09bb1790bf9d38e1714f39af789306f28cdd395d
+    kem_meta_path: 'integration/liboqs/{pretty_name_full}_META.yml'
+    kem_scheme_path: '.'
+    patches: [mlkem-native-ml_kem-derand.patch]
+    preserve_folder_structure: True
+  -
+    name: cupqc
+    git_url: https://github.com/praveksharma/cupqc-mlkem.git
+    git_branch: main
+    git_commit: b026f4e5475cd9c20c2082c7d9bad80e5b0ba89e
+    kem_meta_path: '{pretty_name_full}_META.yml'
+    kem_scheme_path: '.'
+    patches: []
+  -
+    name: pqcrystals-dilithium
+    git_url: https://github.com/pq-crystals/dilithium.git
+    git_branch: master
+    git_commit: 3e9b9f1412f6c7435dbeb4e10692ea58f181ee51
+    sig_meta_path: '{pretty_name_full}_META.yml'
+    sig_scheme_path: '.'
+    patches: [pqcrystals-dilithium-yml.patch, pqcrystals-dilithium-ref-shake-aes.patch, pqcrystals-dilithium-avx2-shake-aes.patch, pqcrystals-dilithium-SUF-CMA.patch]
+  -
+    name: pqcrystals-dilithium-standard
+    git_url: https://github.com/pq-crystals/dilithium.git
+    git_branch: master
+    git_commit: 444cdcc84eb36b66fe27b3a2529ee48f6d8150c2
+    sig_meta_path: '{pretty_name_full}_META.yml'
+    sig_scheme_path: '.'
+    patches: [pqcrystals-ml_dsa.patch, pqcrystals-ml_dsa-SUF-CMA.patch]
+  -
+    name: pqmayo
+    git_url: https://github.com/PQCMayo/MAYO-C.git
+    git_branch: main
+    git_commit: 4b7cd94c96b9522864efe40c6ad1fa269584a807
+    sig_meta_path: 'META/{pretty_name_full}_META.yml'
+    sig_scheme_path: '.'
+    patches: [pqmayo-aes.patch, pqmayo-mem.patch]
   -
     name: upcross
     git_url: https://github.com/CROSS-signature/CROSS-lib-oqs.git
@@ -26,9 +87,9 @@ upstreams:
     sig_meta_path: 'integration/liboqs/{pretty_name_full}_META.yml'
   -
     name: snova
-    git_url: https://github.com/vacuas/SNOVA
+    git_url: https://github.com/vacuas/SNOVA-OQS
     git_branch: main
-    git_commit: 85edbe0cec59d1e8e3c55a9d8c059f7adaa28fb4
+    git_commit: 86fdd4e7213c4b0012076f40f274b3f3bc8bd0e3
     sig_scheme_path: '.'
     sig_meta_path: 'liboqs/META/{pretty_name_full}_META.yml'
 kems:
@@ -94,7 +155,129 @@ kems:
         scheme: "256"
         pqclean_scheme: hqc-256
         pretty_name_full: HQC-256
+  -
+    name: kyber
+    default_implementation: ref
+    libjade_implementation: True
+    arch_specific_implementations:
+                                      aarch64: aarch64
+    upstream_location: pqcrystals-kyber
+    arch_specific_upstream_locations:
+                                      aarch64: oldpqclean
+    schemes:
+      -
+        scheme: "512"
+        pqclean_scheme: kyber512
+        pretty_name_full: Kyber512
+        libjade_implementation: True
+        libjade_implementations:
+          - ref
+          - avx2
+      -
+        scheme: "768"
+        pqclean_scheme: kyber768
+        pretty_name_full: Kyber768
+        libjade_implementation: True
+        libjade_implementations:
+          - ref
+          - avx2
+      -
+        scheme: "1024"
+        pqclean_scheme: kyber1024
+        pretty_name_full: Kyber1024
+        libjade_implementation: False
+  -
+    name: ml_kem
+    default_implementation: ref
+    arch_specific_implementations:
+                                      cuda: cuda
+    arch_specific_upstream_locations:
+                                      cuda: cupqc
+    upstream_location: mlkem-native
+    derandomized_keypair: true
+    schemes:
+      -
+        scheme: "512"
+        pqclean_scheme: ml-kem-512
+        pretty_name_full: ML-KEM-512
+      -
+        scheme: "768"
+        pqclean_scheme: ml-kem-768
+        pretty_name_full: ML-KEM-768
+      -
+        scheme: "1024"
+        pqclean_scheme: ml-kem-1024
+        pretty_name_full: ML-KEM-1024
 sigs:
+  -
+    name: dilithium
+    default_implementation: ref
+    upstream_location: pqcrystals-dilithium
+    arch_specific_implementations:
+                                      aarch64: aarch64
+    arch_specific_upstream_locations:
+                                      aarch64: oldpqclean
+    schemes:
+      -
+        scheme: "2"
+        pqclean_scheme: dilithium2
+        pretty_name_full: Dilithium2
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "3"
+        pqclean_scheme: dilithium3
+        pretty_name_full: Dilithium3
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "5"
+        pqclean_scheme: dilithium5
+        pretty_name_full: Dilithium5
+        signed_msg_order: sig_then_msg
+  -
+    name: ml_dsa
+    default_implementation: ref
+    upstream_location: pqcrystals-dilithium-standard
+    schemes:
+      -
+        scheme: "44"
+        pqclean_scheme: ml-dsa-44
+        pretty_name_full: ML-DSA-44
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "65"
+        pqclean_scheme: ml-dsa-65
+        pretty_name_full: ML-DSA-65
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "87"
+        pqclean_scheme: ml-dsa-87
+        pretty_name_full: ML-DSA-87
+        signed_msg_order: sig_then_msg
+  -
+    name: falcon
+    default_implementation: clean
+    upstream_location: pqclean
+    schemes:
+      -
+        scheme: "512"
+        pqclean_scheme: falcon-512
+        pretty_name_full: Falcon-512
+        signed_msg_order: falcon
+      -
+        scheme: "1024"
+        pqclean_scheme: falcon-1024
+        pretty_name_full: Falcon-1024
+        signed_msg_order: falcon
+      -
+        scheme: "padded_512"
+        pqclean_scheme: falcon-padded-512
+        pretty_name_full: Falcon-padded-512
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "padded_1024"
+        pqclean_scheme: falcon-padded-1024
+        pretty_name_full: Falcon-padded-1024
+        signed_msg_order: sig_then_msg
   -
     name: sphincs
     default_implementation: clean
@@ -104,6 +287,86 @@ sigs:
         scheme: sha2_128f_simple
         pqclean_scheme: sphincs-sha2-128f-simple
         pretty_name_full: SPHINCS+-SHA2-128f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: sha2_128s_simple
+        pqclean_scheme: sphincs-sha2-128s-simple
+        pretty_name_full: SPHINCS+-SHA2-128s-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: sha2_192f_simple
+        pqclean_scheme: sphincs-sha2-192f-simple
+        pretty_name_full: SPHINCS+-SHA2-192f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: sha2_192s_simple
+        pqclean_scheme: sphincs-sha2-192s-simple
+        pretty_name_full: SPHINCS+-SHA2-192s-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: sha2_256f_simple
+        pqclean_scheme: sphincs-sha2-256f-simple
+        pretty_name_full: SPHINCS+-SHA2-256f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: sha2_256s_simple
+        pqclean_scheme: sphincs-sha2-256s-simple
+        pretty_name_full: SPHINCS+-SHA2-256s-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_128f_simple
+        pqclean_scheme: sphincs-shake-128f-simple
+        pretty_name_full: SPHINCS+-SHAKE-128f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_128s_simple
+        pqclean_scheme: sphincs-shake-128s-simple
+        pretty_name_full: SPHINCS+-SHAKE-128s-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_192f_simple
+        pqclean_scheme: sphincs-shake-192f-simple
+        pretty_name_full: SPHINCS+-SHAKE-192f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_192s_simple
+        pqclean_scheme: sphincs-shake-192s-simple
+        pretty_name_full: SPHINCS+-SHAKE-192s-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_256f_simple
+        pqclean_scheme: sphincs-shake-256f-simple
+        pretty_name_full: SPHINCS+-SHAKE-256f-simple
+        signed_msg_order: sig_then_msg
+      -
+        scheme: shake_256s_simple
+        pqclean_scheme: sphincs-shake-256s-simple
+        pretty_name_full: SPHINCS+-SHAKE-256s-simple
+        signed_msg_order: sig_then_msg
+  -
+    name: mayo
+    default_implementation: opt
+    upstream_location: pqmayo
+    schemes:
+      -
+        scheme: "1"
+        pqclean_scheme: mayo-1
+        pretty_name_full: MAYO-1
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "2"
+        pqclean_scheme: mayo-2
+        pretty_name_full: MAYO-2
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "3"
+        pqclean_scheme: mayo-3
+        pretty_name_full: MAYO-3
+        signed_msg_order: sig_then_msg
+      -
+        scheme: "5"
+        pqclean_scheme: mayo-5
+        pretty_name_full: MAYO-5
         signed_msg_order: sig_then_msg
   -
     name: cross
@@ -274,69 +537,69 @@ sigs:
         scheme: "SNOVA_24_5_4"
         pqclean_scheme: SNOVA_24_5_4
         pretty_name_full: SNOVA_24_5_4
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_24_5_4_SHAKE"
         pqclean_scheme: SNOVA_24_5_4_SHAKE
         pretty_name_full: SNOVA_24_5_4_SHAKE
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_24_5_4_esk"
         pqclean_scheme: SNOVA_24_5_4_esk
         pretty_name_full: SNOVA_24_5_4_esk
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_24_5_4_SHAKE_esk"
         pqclean_scheme: SNOVA_24_5_4_SHAKE_esk
         pretty_name_full: SNOVA_24_5_4_SHAKE_esk
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_37_17_2"
         pqclean_scheme: SNOVA_37_17_2
         pretty_name_full: SNOVA_37_17_2
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_25_8_3"
         pqclean_scheme: SNOVA_25_8_3
         pretty_name_full: SNOVA_25_8_3
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_56_25_2"
         pqclean_scheme: SNOVA_56_25_2
         pretty_name_full: SNOVA_56_25_2
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_49_11_3"
         pqclean_scheme: SNOVA_49_11_3
         pretty_name_full: SNOVA_49_11_3
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_37_8_4"
         pqclean_scheme: SNOVA_37_8_4
         pretty_name_full: SNOVA_37_8_4
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_24_5_5"
         pqclean_scheme: SNOVA_24_5_5
         pretty_name_full: SNOVA_24_5_5
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_75_33_2"
         pqclean_scheme: SNOVA_75_33_2
         pretty_name_full: SNOVA_75_33_2
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_66_15_3"
         pqclean_scheme: SNOVA_66_15_3
         pretty_name_full: SNOVA_66_15_3
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_60_10_4"
         pqclean_scheme: SNOVA_60_10_4
         pretty_name_full: SNOVA_60_10_4
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
       -
         scheme: "SNOVA_29_6_5"
         pqclean_scheme: SNOVA_29_6_5
         pretty_name_full: SNOVA_29_6_5
-        signed_msg_order: msg_then_sig
+        signed_msg_order: sig_then_msg
