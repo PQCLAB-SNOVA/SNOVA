@@ -1,38 +1,38 @@
 // Put symbols in namespace for use in a library.
 // Only used by the liboqs integration
 
-#if !defined(SNOVA_NAMESPACE_H) && defined(SNOVA_LIBOQS)
+#ifndef SNOVA_NAMESPACE_H
 #define SNOVA_NAMESPACE_H
 
 #include <stdint.h>
 
 #if OPTIMISATION == 2
 #if __ARM_NEON
-#define OPT_NAME neon
+#define OPT_NAME _neon
 #else
-#define OPT_NAME avx2
+#define OPT_NAME _avx2
 #endif
 #elif OPTIMISATION == 1
-#define OPT_NAME opt
+#define OPT_NAME _opt
 #else
-#define OPT_NAME ref
+#define OPT_NAME _ref
 #endif
 
 #if PK_EXPAND_SHAKE
-#define PKX_NAME shake
+#define PKX_NAME _shake
 #else
-#define PKX_NAME aes
+#define PKX_NAME _aes
 #endif
 
 #if sk_is_seed
-#define SSK_NAME ssk
+#define ESK_NAME _ssk
 #else
-#define SSK_NAME esk
+#define ESK_NAME _esk
 #endif
 
-#define PARAM_JOIN_(o, p, s, a, b, c, f) _snova_##a##_##b##_##c##_##p##_##s##_##o##_##f
+#define PARAM_JOIN_(o, p, s, a, b, c, f) _snova_##a##_##b##_##c##p##s##o##_##f
 #define PARAM_JOIN(o, p, s, a, b, c, f) PARAM_JOIN_(o, p, s, a, b, c, f)
-#define SNOVA_NAMESPACE(f) PARAM_JOIN(OPT_NAME, PKX_NAME, SSK_NAME, v_SNOVA, o_SNOVA, l_SNOVA, f)
+#define SNOVA_NAMESPACE(f) PARAM_JOIN(OPT_NAME, PKX_NAME, ESK_NAME, v_SNOVA, o_SNOVA, l_SNOVA, f)
 
 // snova.c
 
@@ -48,6 +48,7 @@
 #define expand_public_key SNOVA_NAMESPACE(expand_public_key)
 #define expand_public_pack SNOVA_NAMESPACE(expand_public_pack)
 #define fixed_abq SNOVA_NAMESPACE(fixed_abq)
+#define sign_expand_ssk SNOVA_NAMESPACE(sign_expand_ssk)
 #define expand_secret SNOVA_NAMESPACE(expand_secret)
 #define snova_init SNOVA_NAMESPACE(snova_init)
 #define snova_plasma_init SNOVA_NAMESPACE(snova_plasma_init)
@@ -60,10 +61,8 @@
 #define ct_is_negative SNOVA_NAMESPACE(ct_is_negative)
 #define ct_xgf16_is_not_zero SNOVA_NAMESPACE(ct_ct_xgf16_is_not_zerois_negative)
 #define ct_gf16_is_not_zero SNOVA_NAMESPACE(ct_gf16_is_not_zero)
-#define snova_set_zero SNOVA_NAMESPACE(set_zero)
-
-#define snova_shake_ref SNOVA_NAMESPACE(shake_ref)
-#define snova_shake_opt SNOVA_NAMESPACE(shake_opt)
+#define snova_set_zero SNOVA_NAMESPACE(snova_set_zero)
+#define snova_shake SNOVA_NAMESPACE(snova_shake)
 
 #define shake256 SNOVA_NAMESPACE(shake256)
 #define convert_bytes_to_GF16s SNOVA_NAMESPACE(convert_bytes_to_GF16s)
