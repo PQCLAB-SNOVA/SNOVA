@@ -4,29 +4,59 @@ claimed-nist-level: 5
 length-public-key: 8016
 length-secret-key: 48
 length-signature: 576
-nistkat-sha256: a58e987b230774b75f274882c38ed15e2f8142c7fa3bacad4076f4cc5dc88f9e
+nistkat-sha256: af9205c33972a94081067f3c84f83c1779d57860158e49418cfbec733a111798
 principal-submitters:
-  - SNOVA team
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
 implementations:
   - name: opt
     version: round2
     folder_name: .
-    compile_opts: -DOPTIMISATION=1 -DNIST_LEVEL=5 -Dv_SNOVA=60 -Do_SNOVA=10 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
+    compile_opts: -DOPTIMISATION=1 -Dv_SNOVA=60 -Do_SNOVA=10 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
+    large-stack-usage: false
     signature_keypair: _snova_60_10_4_aes_ssk_opt_keypair
     signature_signature: _snova_60_10_4_aes_ssk_opt_sign
     signature_verify: _snova_60_10_4_aes_ssk_opt_verify
-    sources: LICENSE src/oqs_snova.c src/gf16_init.h src/namespace.h src/snova.c src/snova_kernel.h src/snova_aes.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_common.c src/gf16.h src/gf16_matrix_inline.h src/snova_aes.c src/snova_common.h src/aes/aes_local.h
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    large-stack-usage: true
+    supported-platforms: all
   - name: avx2
     version: round2
     folder_name: .
-    compile_opts: -DOPTIMISATION=2 -DNIST_LEVEL=5 -Dv_SNOVA=60 -Do_SNOVA=10 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
+    compile_opts: -DOPTIMISATION=2 -Dv_SNOVA=60 -Do_SNOVA=10 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
+    large-stack-usage: false
     signature_keypair: _snova_60_10_4_aes_ssk_avx2_keypair
     signature_signature: _snova_60_10_4_aes_ssk_avx2_sign
     signature_verify: _snova_60_10_4_aes_ssk_avx2_verify
-    sources: LICENSE src/oqs_snova.c src/gf16_init.h src/namespace.h src/snova.c src/snova_kernel.h src/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_common.c src/gf16.h src/gf16_matrix_inline.h src/snova_aes.c src/snova_common.h src/aes/aes_local.h
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    large-stack-usage: true
     supported_platforms:
       - architecture: x86_64
         operating_systems:
           - Linux
         required_flags:
           - avx2
+  - name: neon
+    version: round2
+    folder_name: .
+    compile_opts: -DOPTIMISATION=2 -Dv_SNOVA=60 -Do_SNOVA=10 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
+    large-stack-usage: false
+    signature_keypair: _snova_60_10_4_aes_ssk_neon_keypair
+    signature_signature: _snova_60_10_4_aes_ssk_neon_sign
+    signature_verify: _snova_60_10_4_aes_ssk_neon_verify
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    large-stack-usage: true
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd
