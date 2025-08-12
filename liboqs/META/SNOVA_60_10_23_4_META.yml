@@ -1,0 +1,59 @@
+name: SNOVA_60_10_23_4
+type: signature
+claimed-nist-level: 5
+length-public-key: 4702
+length-secret-key: 48
+length-signature: 656
+nistkat-sha256: 5b7cb908641e564f41f27fd69d53fb8eff263d038afd2964fad57af82b291eba
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: 2.1
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4
+    signature_keypair: _snova_60_10_23_4_opt_oqs_keypair
+    signature_signature: _snova_60_10_23_4_opt_oqs_sign
+    signature_verify: _snova_60_10_23_4_opt_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported-platforms: all
+  - name: avx2
+    version: 2.1
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4
+    signature_keypair: _snova_60_10_23_4_avx2_oqs_keypair
+    signature_signature: _snova_60_10_23_4_avx2_oqs_sign
+    signature_verify: _snova_60_10_23_4_avx2_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: 2.1
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4
+    signature_keypair: _snova_60_10_23_4_neon_oqs_keypair
+    signature_signature: _snova_60_10_23_4_neon_oqs_sign
+    signature_verify: _snova_60_10_23_4_neon_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd

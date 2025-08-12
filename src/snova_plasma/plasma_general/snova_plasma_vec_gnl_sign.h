@@ -5,20 +5,7 @@
 #ifndef PLASMA_GNL_VECTOR_SIGN_H
 #define PLASMA_GNL_VECTOR_SIGN_H
 
-// Define vtl_multtab to influence the constant time behavior.
-// The most efficient and the probably the most susceptible to a timing attack.
-// This is the version submitted to NIST Round 2
 #define vtl_multtab(x) (mtk2_16[x])
-
-// When using the following macro, only the first 512 bytes of mtk2_16 are used on AVX2 (256 bytes on ARM NEON).
-// As mtk2_16 is aligned to 512 bytes, this should not give rise to page faults.
-// The result could be constant time depending on specifcics of the CPU and OS.
-// #define vtl_multtab(x) (mtk2_16[x & 0xf] ^ (mtk2_16[x >> 4] << 4))
-
-// Fully constant time macro.
-// Caveat: There are more efficient ways of making SNOVA fully constant time where "constant time" is defined as: passes the valgrind test.
-// #define vtl_multtab(x) (vtl_ct_multtab(x & 0xf) ^ (vtl_ct_multtab(x >> 4) << 4))
-
 
 #define GAUSS_ROW (m_SNOVA * lsq_SNOVA + 1)
 #define GAUSS_ROW32 ((GAUSS_ROW + VEC_LENGTH - 1) / VEC_LENGTH)
