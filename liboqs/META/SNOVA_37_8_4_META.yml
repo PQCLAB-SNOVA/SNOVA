@@ -17,24 +17,24 @@ principal-submitters:
   - Chia-Chun Wang
 implementations:
   - name: opt
-    version: round2
+    version: 2.1
     folder_name: .
-    compile_opts: -DOPTIMISATION=1 -Dv_SNOVA=37 -Do_SNOVA=8 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
-    signature_keypair: _snova_37_8_4_aes_ssk_opt_keypair
-    signature_signature: _snova_37_8_4_aes_ssk_opt_sign
-    signature_verify: _snova_37_8_4_aes_ssk_opt_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
-    large-stack-usage: true
+    compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=37 -DSNOVA_o=8 -DSNOVA_q=16 -DSNOVA_l=4 -DAESCTR
+    signature_keypair: _snova_37_8_16_4_aes_opt_oqs_keypair
+    signature_signature: _snova_37_8_16_4_aes_opt_oqs_sign
+    signature_verify: _snova_37_8_16_4_aes_opt_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
     supported-platforms: all
   - name: avx2
-    version: round2
+    version: 2.1
     folder_name: .
-    compile_opts: -DOPTIMISATION=2 -Dv_SNOVA=37 -Do_SNOVA=8 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
-    signature_keypair: _snova_37_8_4_aes_ssk_avx2_keypair
-    signature_signature: _snova_37_8_4_aes_ssk_avx2_sign
-    signature_verify: _snova_37_8_4_aes_ssk_avx2_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
-    large-stack-usage: true
+    compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=37 -DSNOVA_o=8 -DSNOVA_q=16 -DSNOVA_l=4 -DAESCTR
+    signature_keypair: _snova_37_8_16_4_aes_avx2_oqs_keypair
+    signature_signature: _snova_37_8_16_4_aes_avx2_oqs_sign
+    signature_verify: _snova_37_8_16_4_aes_avx2_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
     supported_platforms:
       - architecture: x86_64
         operating_systems:
@@ -44,12 +44,12 @@ implementations:
   - name: neon
     version: round2
     folder_name: .
-    compile_opts: -DOPTIMISATION=2 -Dv_SNOVA=37 -Do_SNOVA=8 -Dl_SNOVA=4 -Dsk_is_seed=1 -DPK_EXPAND_SHAKE=0 -DSNOVA_LIBOQS
-    signature_keypair: _snova_37_8_4_aes_ssk_neon_keypair
-    signature_signature: _snova_37_8_4_aes_ssk_neon_sign
-    signature_verify: _snova_37_8_4_aes_ssk_neon_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
-    large-stack-usage: true
+    compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=37 -DSNOVA_o=8 -DSNOVA_q=16 -DSNOVA_l=4 -DAESCTR
+    signature_keypair: _snova_37_8_16_4_aes_neon_oqs_keypair
+    signature_signature: _snova_37_8_16_4_aes_neon_oqs_sign
+    signature_verify: _snova_37_8_16_4_aes_neon_oqs_verify
+    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
     supported_platforms:
       - architecture: arm_8
         operating_systems:

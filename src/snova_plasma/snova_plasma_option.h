@@ -3,7 +3,11 @@
 
 #if OPTIMISATION == 2
 #include "snova_plasma_vec.h"
+#ifdef SNOVA_LIBOQS
+#include "snova_plasma_vec_gnl_sign_ct.h"
+#else
 #include "snova_plasma_vec_gnl_sign.h"
+#endif
 #include "snova_plasma_vec_gnl_verify.h"
 #elif OPTIMISATION == 1
 #include "snova_opt.h"

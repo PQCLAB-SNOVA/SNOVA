@@ -24,7 +24,7 @@ implementations:
     signature_keypair: _snova_75_33_2_aes_ssk_opt_keypair
     signature_signature: _snova_75_33_2_aes_ssk_opt_sign
     signature_verify: _snova_75_33_2_aes_ssk_opt_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign_ct.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
     large-stack-usage: true
     supported-platforms: all
   - name: avx2
@@ -35,7 +35,7 @@ implementations:
     signature_keypair: _snova_75_33_2_aes_ssk_avx2_keypair
     signature_signature: _snova_75_33_2_aes_ssk_avx2_sign
     signature_verify: _snova_75_33_2_aes_ssk_avx2_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign_ct.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
     large-stack-usage: true
     supported_platforms:
       - architecture: x86_64
@@ -51,7 +51,7 @@ implementations:
     signature_keypair: _snova_75_33_2_aes_ssk_neon_keypair
     signature_signature: _snova_75_33_2_aes_ssk_neon_sign
     signature_verify: _snova_75_33_2_aes_ssk_neon_verify
-    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
+    sources: LICENSE src/deriv_params.h src/gf16.h src/gf16_init.h src/gf16_matrix.h src/gf16_matrix_inline.h src/namespace.h liboqs/oqs_snova.c src/snova.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/deriv_params.h src/gf16_matrix.h src/params.h src/snova.h src/snova_aes.c src/snova_common.h src/snova_common.c src/snova_kernel.h src/snova_plasma/snova_shake.c src/snova_plasma/snova_opt.h src/snova_plasma/snova_plasma_vec.h src/snova_plasma/snova_plasma_option.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_sign_ct.h src/snova_plasma/plasma_general/snova_plasma_vec_gnl_verify.h
     large-stack-usage: true
     supported_platforms:
       - architecture: arm_8

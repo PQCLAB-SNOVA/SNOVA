@@ -2,7 +2,9 @@ SNOVA
 =======
 This repository contains the latest official Reference, Optimized, and AVX2 implementations in C of the SNOVA signature scheme.
 
-There is only a single version of the source code of SNOVA. The parameter sets and the optimization level are controlled in the makefile or by the command line parameters of the `make` command  in the `./src` subdirectory. The makefile in the top level directory will create subdirectories corresponding to the various SNOVA parameter sets.
+There is only a single version of the source code of SNOVA for q=16. The parameter sets and the optimization level are controlled in the makefile or by the command line parameters of the `make` command  in the `./src` subdirectory. The makefile in the top level directory will create subdirectories corresponding to the various SNOVA parameter sets.
+
+The `oddqsrc` directory contains a version of SNOVA for odd primes in the range q=7...31. This directory also contains an improved and constant-time version for q=16, l=4. See the README.md in the `oddqsrc` directory.
 
 ## Build instructions
 

@@ -171,4 +171,4 @@ typings/
 *.js
 *.wasm
 *.tmp
-
+.vscode
