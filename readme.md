@@ -6,6 +6,8 @@ There is only a single version of the source code of SNOVA for q=16. The paramet
 
 The `oddqsrc` directory contains a version of SNOVA for odd primes in the range q=7...31. This directory also contains an improved and constant-time version for q=16, l=4. See the README.md in the `oddqsrc` directory.
 
+The `dist` directory contains a makefile that will create subdirectories containing all the recommended $l=4$ SNOVA instances.
+
 ## Build instructions
 
 Building requires `gcc` and `make`. There are no other dependencies.

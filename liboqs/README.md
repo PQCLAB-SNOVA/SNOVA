@@ -14,8 +14,8 @@ openssl list -signature-algorithms -provider-path _build/lib/ -provider oqsprovi
 
 Create private and public keys
 ```
-openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
-openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider
+openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider -provider default
+openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider -provider default
 ```
 
 Sign README.md
@@ -32,18 +32,18 @@ openssl dgst -sha3-256 -verify public.pem -provider-path _build/lib/ -provider o
 
 Create keypair and view
 ```
-openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider
-openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider
+openssl genpkey -algorithm snova2454 -out private.pem  -provider-path _build/lib/ -provider oqsprovider -provider default
+openssl pkey -in private.pem -pubout -out public.pem -provider-path _build/lib/ -provider oqsprovider -provider default
 ```
 
 Create sign request and view
 ```
-openssl req -key private.pem -new -out domain.csr -provider-path _build/lib/ -provider oqsprovider
-openssl req -in domain.csr -text -noout -provider-path _build/lib/ -provider oqsprovider
+openssl req -key private.pem -new -out domain.csr -provider-path _build/lib/ -provider oqsprovider -provider default
+openssl req -in domain.csr -text -noout -provider-path _build/lib/ -provider oqsprovider -provider default
 ```
 
 Self-sign and view
 ```
-openssl x509 -signkey private.pem -in domain.csr -req -days 365 -out domain.crt -provider-path _build/lib/ -provider oqsprovider
-openssl x509 -in domain.crt -text -noout -provider-path _build/lib/ -provider oqsprovider
+openssl x509 -signkey private.pem -in domain.csr -req -days 365 -out domain.crt -provider-path _build/lib/ -provider oqsprovider -provider default
+openssl x509 -in domain.crt -text -noout -provider-path _build/lib/ -provider oqsprovider -provider default
 ```

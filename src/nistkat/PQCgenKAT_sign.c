@@ -27,7 +27,7 @@ void    fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L);
 char    AlgName[] = "My Alg Name";
 
 int
-main()
+main(void)
 {
     char                fn_req[64], fn_rsp[64];
     FILE                *fp_req, *fp_rsp;
