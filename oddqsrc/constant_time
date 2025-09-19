@@ -25,13 +25,13 @@
 {
    Rejection sampling when no valid solution was found, Odd q
    Memcheck:Cond
-   src:snova_opt_q.c:1010
+   src:snova_opt_q.c:1012
 }
 
 {
    Rejection sampling when no valid solution was found, Odd q
    Memcheck:Cond
-   src:snova_opt_q.c:1061
+   src:snova_opt_q.c:1063
 }
 
 # q=16
@@ -46,6 +46,32 @@
    Rejection sampling when no valid solution was found, Optimized q=16
    Memcheck:Cond
    src:snova_opt_16.c:819
+}
+
+# AVX2
+
+{
+   Rejection sampling of secret key
+   Memcheck:Value8
+   src:snova_avx2_q.c:427
+}
+
+{
+   Rejection sampling of secret key
+   Memcheck:Cond
+   src:snova_avx2_q.c:420
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_avx2_q.c:1090
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_avx2_q.c:1141
 }
 
 # Only dependent on Public key

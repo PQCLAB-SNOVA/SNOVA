@@ -18,7 +18,6 @@ make clean all P="-D SNOVA_v=24 -D SNOVA_o=5 -D SNOVA_q=16 -D SNOVA_l=4 -D AESCT
 Available optimization options are:
 1. Use `make OPT=REF` to build the reference implementation.
 2. Use `make OPT=OPT` (default) for the plain-C optimized version.
-3. Use `make OPT=AVX2` for a version using AVX2 vectorization instructions (odd prime $q$ and $l=4$ only). The plain-C optimized version is faster on some compilers.
 
 
 Recommended parameters
@@ -48,13 +47,3 @@ We have observed the following cycle counts for the optimized `OPT=OPT` version 
 |  clang   |  20.1.8 |   953,932 |  1,960,312 |  425,523 |
 
 These cycle counts were collected on an Intel(R) Core(TM) Ultra 7 155H (Meteor Lake) laptop running Arch Linux and using gcc version 15.2.1 20250813. We report the median over 2048 benchmark runs.
-
-The performance of the sign on other compilers can be made to be close to that of gcc 15.1.1 by using explicit AVX2 vectorization instructions. Vectorization is supported for odd prime $q$ and $l=4$.
-Benchmark results for the vectorized `OPT=AVX2` version of SNOVA_24_5_23_4 are:
-
-| Compiler | version |   Genkey  |     Sign   |  Verify  |
-|----------|---------|-----------|------------|----------|
-|   gcc    |  15.2.1 |   456,141 |    849,425 |  356,909 |
-|   gcc    |  13.3.0 |   459,376 |    949,297 |  366,787 |
-|   gcc    |  11.4.1 |   503,318 |  1,068,568 |  379,610 |
-|  clang   |  20.1.8 |   970,835 |  1,022,163 |  422,670 |

@@ -1,0 +1,48 @@
+MAKEFLAGS += --no-print-directory
+
+all: kat speed
+
+digest:
+	@sh digest.sh */PQCsign*
+
+kat:
+	make -C SNOVA_24_5_23_4 kat
+	make -C SNOVA_37_8_19_4 kat
+	make -C SNOVA_60_10_23_4 kat
+	make -C SNOVA_24_5_23_4_AES kat
+	make -C SNOVA_37_8_19_4_AES kat
+	make -C SNOVA_60_10_23_4_AES kat
+	make -C SNOVA_24_5_16_4 kat
+	make -C SNOVA_37_8_16_4 kat
+	make -C SNOVA_60_10_16_4 kat
+	make -C SNOVA_24_5_16_4_AES kat
+	make -C SNOVA_37_8_16_4_AES kat
+	make -C SNOVA_60_10_16_4_AES kat
+
+speed:
+	@make -C SNOVA_24_5_23_4 speed
+	@make -C SNOVA_37_8_19_4 speed
+	@make -C SNOVA_60_10_23_4 speed
+	@make -C SNOVA_24_5_23_4_AES speed
+	@make -C SNOVA_37_8_19_4_AES speed
+	@make -C SNOVA_60_10_23_4_AES speed
+	@make -C SNOVA_24_5_16_4 speed
+	@make -C SNOVA_37_8_16_4 speed
+	@make -C SNOVA_60_10_16_4 speed
+	@make -C SNOVA_24_5_16_4_AES speed
+	@make -C SNOVA_37_8_16_4_AES speed
+	@make -C SNOVA_60_10_16_4_AES speed
+
+clean:
+	make -C SNOVA_24_5_23_4 clean
+	make -C SNOVA_37_8_19_4 clean
+	make -C SNOVA_60_10_23_4 clean
+	make -C SNOVA_24_5_23_4_AES clean
+	make -C SNOVA_37_8_19_4_AES clean
+	make -C SNOVA_60_10_23_4_AES clean
+	make -C SNOVA_24_5_16_4 clean
+	make -C SNOVA_37_8_16_4 clean
+	make -C SNOVA_60_10_16_4 clean
+	make -C SNOVA_24_5_16_4_AES clean
+	make -C SNOVA_37_8_16_4_AES clean
+	make -C SNOVA_60_10_16_4_AES clean

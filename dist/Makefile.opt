@@ -16,8 +16,6 @@ ifeq ($(OPT), REF)
 OBJS = ./build/snova_ref.o ./build/symmetric_ref.o
 else ifeq ($(OPT), OPT)
 OBJS = ./build/snova_opt.o ./build/symmetric.o
-else ifeq ($(OPT), AVX2)
-OBJS = ./build/snova_avx2_q.o ./build/symmetric.o
 else
 $(error OPT=$(OPT) is not supported)
 endif

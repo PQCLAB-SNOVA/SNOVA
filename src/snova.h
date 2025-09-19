@@ -5,7 +5,7 @@
 
 #include "deriv_params.h"
 
-#if SNOVA_LIBOQS
+#if defined(SNOVA_LIBOQS)
 #include <oqs/sha3.h>
 #include "namespace.h"
 

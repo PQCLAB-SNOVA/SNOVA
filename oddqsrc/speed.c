@@ -16,14 +16,14 @@
 #include "api.h"
 #include "rng.h"
 
-// Test duration in seconds
+// Max test duration in seconds
 #ifndef DURATION
 #define DURATION 3
 #endif
 
-// MAx numver of tests if reached before the test duration
+// Max number of tests
 #ifndef MAX_TESTS
-#define MAX_TESTS 100000
+#define MAX_TESTS 2048
 #endif
 
 #define TEXT_LEN 64
@@ -183,6 +183,9 @@ int main(void) {
 	int test_n = i;
 
 	if (r == 0) {
+		if (test_n != 2048) {
+			printf(">");
+		}
 		printf("%s & %d & %d", CRYPTO_ALGNAME, CRYPTO_PUBLICKEYBYTES, CRYPTO_BYTES);
 	} else {
 		printf("\nFAIL!!\n\n%s & (%d, %d)", CRYPTO_ALGNAME, CRYPTO_PUBLICKEYBYTES, CRYPTO_BYTES);

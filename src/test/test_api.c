@@ -6,7 +6,7 @@
 
 #define text_len 999
 
-int main() {
+int main(void) {
     uint8_t pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     uint8_t text[text_len] = {0};
     uint8_t sm[CRYPTO_BYTES + text_len];

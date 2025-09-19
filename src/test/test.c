@@ -5,7 +5,7 @@
 #include "util.h"
 #include "../nistkat/rng.h"
 
-int main() {
+int main(void) {
     uint8_t array_digest[64];
     uint8_t array_signature1[bytes_signature + bytes_salt];
     uint8_t array_signature2[bytes_signature + bytes_salt];
