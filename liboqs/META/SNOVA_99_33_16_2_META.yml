@@ -1,0 +1,59 @@
+name: SNOVA_99_33_16_2
+type: signature
+claimed-nist-level: 5
+length-public-key: 71890
+length-secret-key: 48
+length-signature: 280
+nistkat-sha256: 9cbeae9d26297d40fa3dc12d74d5102f28ddfb4d6ab925c123db5179956473d8
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=99 -DSNOVA_o=33 -DSNOVA_q=16 -DSNOVA_l=2
+    signature_keypair: _snova_99_33_16_2_opt_oqs_keypair
+    signature_signature: _snova_99_33_16_2_opt_oqs_sign
+    signature_verify: _snova_99_33_16_2_opt_oqs_verify
+    sources: LICENSE LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported-platforms: all
+  - name: avx2
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=99 -DSNOVA_o=33 -DSNOVA_q=16 -DSNOVA_l=2
+    signature_keypair: _snova_99_33_16_2_avx2_oqs_keypair
+    signature_signature: _snova_99_33_16_2_avx2_oqs_sign
+    signature_verify: _snova_99_33_16_2_avx2_oqs_verify
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_avx2_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=99 -DSNOVA_o=33 -DSNOVA_q=16 -DSNOVA_l=2
+    signature_keypair: _snova_99_33_16_2_neon_oqs_keypair
+    signature_signature: _snova_99_33_16_2_neon_oqs_sign
+    signature_verify: _snova_99_33_16_2_neon_oqs_verify
+    sources: LICENSE LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd

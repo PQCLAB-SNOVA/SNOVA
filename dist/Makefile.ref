@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -O3
-OBJS = ./build/snova_ref.o ./build/symmetric_ref.o ./build/rng.o ./build/sign.o
+OBJS = ./build/snova_ref.o ./build/symmetric_ref.o ./build/rng.o ./build/sign.o ./build/aes.o
 HDRS = api.h rng.h symmetric.h snova.h snova_params.h
 LIBS = -lcrypto
 

@@ -1,65 +1,83 @@
+// SPDX-License-Identifier: MIT
+
+/**
+ * Interface to NIST API.
+ *
+ * This file is the only point where randombytes is used by SNOVA.
+ * The snova_* implementations are deterministic.
+ *
+ * SNOVA Team 2025
+ */
+
+#include <string.h>
+
+#if defined(VALGRIND)
+#include <valgrind/memcheck.h>
+#endif
+
 #include "api.h"
-#include "snova.h"
-#include "nistkat/rng.h"
+#include "rng.h"
+#include "symmetric.h"
 
-int crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
-	uint8_t seed_pair[seed_length];
-	uint8_t *pt_private_key_seed;
-	uint8_t *pt_public_key_seed;
+int crypto_sign_keypair(unsigned char* pk, unsigned char* sk) {
+	uint8_t seed[SEED_LENGTH];
 
-	randombytes(seed_pair, seed_length);
-	pt_public_key_seed = seed_pair;
-	pt_private_key_seed = seed_pair + seed_length_public;
+	randombytes(seed, SEED_LENGTH);
 
-#if sk_is_seed
-	generate_keys_ssk(pk, sk, pt_public_key_seed, pt_private_key_seed);
-#else
-	generate_keys_esk(pk, sk, pt_public_key_seed, pt_private_key_seed);
+#if defined(VALGRIND)
+	VALGRIND_MAKE_MEM_UNDEFINED(seed, SEED_LENGTH);
 #endif
 
-	return 0;
+	int res = SNOVA_NAMESPACE(genkeys)(pk, sk, seed);
+
+	return res;
 }
 
-int crypto_sign(unsigned char *sm, unsigned long long *smlen,
-                const unsigned char *m, unsigned long long mlen,
+int crypto_sign(unsigned char* sm, unsigned long long* smlen, const unsigned char* m, unsigned long long mlen,
                 const unsigned char *sk) {
-	uint8_t digest[64];
-	uint8_t salt[bytes_salt];
-	// hash
-	shake256(m, mlen, digest, 64);
+	uint8_t salt[BYTES_SALT];
+	expanded_SK skx_d;
 
-	// sign
-	// create_salt(salt);
-	randombytes(salt, bytes_salt);
-#if sk_is_seed
-	sign_digest_ssk(sm, digest, 64, salt, sk);
-#else
-	sign_digest_esk(sm, digest, 64, salt, sk);
+	int res = SNOVA_NAMESPACE(sk_expand)(&skx_d, sk);
+	if (res) {
+		return res;
+	}
+
+	randombytes(salt, BYTES_SALT);
+
+#if defined(VALGRIND)
+	VALGRIND_MAKE_MEM_UNDEFINED(salt, BYTES_SALT);
 #endif
 
-	memcpy(sm + CRYPTO_BYTES, m, mlen);
-	*smlen = CRYPTO_BYTES + mlen;
-	return 0;
+	res = SNOVA_NAMESPACE(sign)(&skx_d, sm, m, mlen, salt);
+	if (!res) {
+		memcpy(sm + CRYPTO_BYTES, m, mlen);
+		*smlen = mlen + CRYPTO_BYTES;
+	}
+
+	return res;
 }
 
-int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
-                     const unsigned char *sm, unsigned long long smlen,
+int crypto_sign_open(unsigned char* m, unsigned long long* mlen, const unsigned char* sm, unsigned long long smlen,
                      const unsigned char *pk) {
-	uint8_t digest[64];
+	expanded_PK pkx;
+
 	if (smlen < CRYPTO_BYTES) {
 		return -1;
 	}
 
-	// hash
-	shake256(sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES, digest, 64);
-
-	int r = verify_signture(digest, 64, sm, pk);
-	if (r) {
+	int res = SNOVA_NAMESPACE(pk_expand)(&pkx, pk);
+	if (res) {
 		return -1;
 	}
 
-	memcpy(m, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
-	*mlen = smlen - CRYPTO_BYTES;
+	res = SNOVA_NAMESPACE(verify)(&pkx, sm, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
+	if (!res) {
+		memcpy(m, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
+		*mlen = smlen - CRYPTO_BYTES;
+	} else {
+		return -1;
+	}
 
 	return 0;
 }

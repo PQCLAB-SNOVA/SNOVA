@@ -4,7 +4,7 @@ claimed-nist-level: 3
 length-public-key: 2269
 length-secret-key: 48
 length-signature: 400
-nistkat-sha256: 5b7cb908641e564f41f27fd69d53fb8eff263d038afd2964fad57af82b291eba
+nistkat-sha256: 1f50830d34f480ba75b1ff3ba819678a6077afe3553f45f43a6abc7d029d900d
 principal-submitters:
   - Lih-Chung Wang
   - Chun-Yen Chou
@@ -23,7 +23,7 @@ implementations:
     signature_keypair: _snova_37_8_19_4_opt_oqs_keypair
     signature_signature: _snova_37_8_19_4_opt_oqs_sign
     signature_verify: _snova_37_8_19_4_opt_oqs_verify
-    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_q.c liboqs/snova_oqs.c
     large-stack-usage: false
     supported-platforms: all
   - name: avx2
@@ -33,7 +33,7 @@ implementations:
     signature_keypair: _snova_37_8_19_4_avx2_oqs_keypair
     signature_signature: _snova_37_8_19_4_avx2_oqs_sign
     signature_verify: _snova_37_8_19_4_avx2_oqs_verify
-    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_q.c liboqs/snova_oqs.c
     large-stack-usage: false
     supported_platforms:
       - architecture: x86_64
@@ -48,7 +48,7 @@ implementations:
     signature_keypair: _snova_37_8_19_4_neon_oqs_keypair
     signature_signature: _snova_37_8_19_4_neon_oqs_sign
     signature_verify: _snova_37_8_19_4_neon_oqs_verify
-    sources: LICENSE oddqsrc/snova.h liboqs/symmetric.h oddqsrc/snova_opt_q.c liboqs/snova_oqs.c
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_q.c liboqs/snova_oqs.c
     large-stack-usage: false
     supported_platforms:
       - architecture: arm_8
