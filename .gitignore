@@ -171,4 +171,10 @@ typings/
 *.js
 *.wasm
 *.tmp
-.vscode
+
+*.pyc
+
+# make
+/SNOVA_*/ref/
+/SNOVA_*/opt/
+/SNOVA_*/avx2/

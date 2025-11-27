@@ -1,0 +1,59 @@
+name: SNOVA_43_17_16_2_AES
+type: signature
+claimed-nist-level: 1
+length-public-key: 9842
+length-secret-key: 48
+length-signature: 136
+nistkat-sha256: c844bc615dd6df614f8856708ffbb9bb43ed977d7cf86b4c4fc8b82cd5380c18
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=43 -DSNOVA_o=17 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR
+    signature_keypair: _snova_43_17_16_2_aes_opt_oqs_keypair
+    signature_signature: _snova_43_17_16_2_aes_opt_oqs_sign
+    signature_verify: _snova_43_17_16_2_aes_opt_oqs_verify
+    sources: LICENSE LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported-platforms: all
+  - name: avx2
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=43 -DSNOVA_o=17 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR
+    signature_keypair: _snova_43_17_16_2_aes_avx2_oqs_keypair
+    signature_signature: _snova_43_17_16_2_aes_avx2_oqs_sign
+    signature_verify: _snova_43_17_16_2_aes_avx2_oqs_verify
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_avx2_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=43 -DSNOVA_o=17 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR
+    signature_keypair: _snova_43_17_16_2_aes_neon_oqs_keypair
+    signature_signature: _snova_43_17_16_2_aes_neon_oqs_sign
+    signature_verify: _snova_43_17_16_2_aes_neon_oqs_verify
+    sources: LICENSE LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd

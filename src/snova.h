@@ -1,129 +1,180 @@
 #ifndef SNOVA_H
 #define SNOVA_H
 
-#include <stdalign.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#include "deriv_params.h"
+#ifndef SNOVA_q
+#include "snova_params.h"
+#endif
 
-#if defined(SNOVA_LIBOQS)
-#include <oqs/sha3.h>
-#include "namespace.h"
+#if ((SNOVA_v * SNOVA_l * SNOVA_o) & 1) != 0
+// P11 is not byte-aligned if v, o, and l are all odd
+#error "Not supported"
+#endif
 
-#define Keccak_HashInstance OQS_SHA3_shake256_inc_ctx
-#define Keccak_HashInitialize_SHAKE256 OQS_SHA3_shake256_inc_init
-#define Keccak_HashUpdate(a, b, c) OQS_SHA3_shake256_inc_absorb(a, b, (c) / 8)
-#define Keccak_HashFinal(a, b) OQS_SHA3_shake256_inc_finalize(a)
-#define Keccak_HashSqueeze(a, b, c)                   \
-    {                                                 \
-        OQS_SHA3_shake256_inc_squeeze(b, (c) / 8, a); \
-        OQS_SHA3_shake256_inc_ctx_release(a);         \
-    }
-#define _KeccakHashInterface_h_
+#if SNOVA_q != 16 && !defined(ASYMMETRIC)
+#define SYMMETRIC
+#endif
+
+#define FIXED_ABQ (SNOVA_l < 4)
+
+#ifdef AESCTR
+#define PKX_NAME _aes_
 #else
-#include "shake/KeccakHash.h"
+#define PKX_NAME _
 #endif
 
-#include "gf16_matrix.h"
-#include "snova_common.h"
+#define PARAM_JOIN_(o, p, a, b, c, d, f) _snova_##a##_##b##_##c##_##d##p##o##_##f
+#define PARAM_JOIN(o, p, a, b, c, d, f) PARAM_JOIN_(o, p, a, b, c, d, f)
+#define SNOVA_NAMESPACE(f) PARAM_JOIN(SNOVA_OPT, PKX_NAME, SNOVA_v, SNOVA_o, SNOVA_q, SNOVA_l, f)
 
-typedef gf16m_t P11_t[m_SNOVA][v_SNOVA][v_SNOVA];
-typedef gf16m_t P12_t[m_SNOVA][v_SNOVA][o_SNOVA];
-typedef gf16m_t P21_t[m_SNOVA][o_SNOVA][v_SNOVA];
-typedef gf16m_t Aalpha_t[m_SNOVA][alpha_SNOVA];
-typedef gf16m_t Balpha_t[m_SNOVA][alpha_SNOVA];
-typedef gf16m_t Qalpha1_t[m_SNOVA][alpha_SNOVA];
-typedef gf16m_t Qalpha2_t[m_SNOVA][alpha_SNOVA];
+#define SEED_LENGTH_PUBLIC 16
+#define SEED_LENGTH_PRIVATE 32
+#define SEED_LENGTH (SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE)
 
-typedef struct {
-	P11_t P11;
-	P12_t P12;
-	P21_t P21;
-	Aalpha_t Aalpha;
-	Balpha_t Balpha;
-	Qalpha1_t Qalpha1;
-	Qalpha2_t Qalpha2;
-} map_group1;
+#define BYTES_SALT 16
 
+// Derived
+#define SNOVA_n (SNOVA_v + SNOVA_o)
+#define SNOVA_l2 (SNOVA_l * SNOVA_l)
 
-typedef gf16m_t T12_t[v_SNOVA][o_SNOVA];
-typedef gf16m_t F11_t[m_SNOVA][v_SNOVA][v_SNOVA];
-typedef gf16m_t F12_t[m_SNOVA][v_SNOVA][o_SNOVA];
-typedef gf16m_t F21_t[m_SNOVA][o_SNOVA][v_SNOVA];
+#ifdef SYMMETRIC
+#define NUMGF_PK (SNOVA_o * SNOVA_o * SNOVA_l * (SNOVA_o * SNOVA_l + 1) / 2)
+#else
+#define NUMGF_PK (SNOVA_o * SNOVA_o * SNOVA_o * SNOVA_l2)
+#endif
+#define NUMGF_SIGNATURE (SNOVA_n * SNOVA_l2)
 
-typedef struct {
-	F11_t F11;
-	F12_t F12;
-	F21_t F21;
-} map_group2;
+#if SNOVA_q == 7
+#define Q_A 4
+#define Q_B 6
+#if SNOVA_l != 3
+#define Q_C 1
+#else
+#define Q_C 5
+#endif
+#define PACK_GF 17
+#define PACK_BYTES 6
 
-typedef struct {
-	Aalpha_t Aalpha;
-	Balpha_t Balpha;
-	Qalpha1_t Qalpha1;
-	Qalpha2_t Qalpha2;
-	T12_t T12;
-	F11_t F11;
-	F12_t F12;
-	F21_t F21;
-	uint8_t pt_public_key_seed[seed_length_public];
-	uint8_t pt_private_key_seed[seed_length_private];
-} sk_gf16;
+#elif SNOVA_q == 11
+#define Q_A 0
+#define Q_B 3
+#define Q_C 6
+#define PACK_GF 16
+#define PACK_BYTES 7
 
-typedef gf16m_t P22_t[m_SNOVA][o_SNOVA][o_SNOVA];
-typedef uint8_t
-P22_byte_t[(m_SNOVA * o_SNOVA * o_SNOVA * lsq_SNOVA + 1) >> 1];  // byte
+#elif SNOVA_q == 13
+#define Q_A 2
+#define Q_B 11
+#define Q_C 3
+#define PACK_GF 15
+#define PACK_BYTES 7
 
-typedef struct {
-	uint8_t pt_public_key_seed[seed_length_public];
-	P22_byte_t P22;
-} public_key;
+#elif SNOVA_q == 16
+#define PACK_GF 2
+#define PACK_BYTES 1
 
-typedef struct {
-	uint8_t pt_public_key_seed[seed_length_public];
-	P22_t P22;
-	map_group1 map1;
-} public_key_expand;
+#elif SNOVA_q == 17
+#define Q_A 1
+#define Q_B 11
+#define Q_C 10
+#define PACK_GF 15
+#define PACK_BYTES 8
 
-typedef struct {
-	uint8_t pt_public_key_seed[seed_length_public];
-	uint8_t P22_map1[((sizeof(P22_t) + sizeof(map_group1)) + 1) / 2];
-} public_key_expand_pack;
+#elif SNOVA_q == 19
+#define Q_A 1
+#define Q_B 3
+#define Q_C 15
+#define PACK_GF 15
+#define PACK_BYTES 8
 
-typedef struct {
-	map_group1 map1;
-	T12_t T12;
-	map_group2 map2;
-	public_key pk;
-} snova_key_elems;
+#elif SNOVA_q == 23
+#define Q_A 1
+#define Q_B 11
+#define Q_C 22
+#define PACK_GF 7
+#define PACK_BYTES 4
 
-#ifdef __cplusplus
-extern "C" {
+#elif SNOVA_q == 29
+#define Q_A 3
+#define Q_B 12
+#define Q_C 11
+#define PACK_GF 13
+#define PACK_BYTES 8
+
+#elif SNOVA_q == 31
+#define Q_A 2
+#define Q_B 5
+#define Q_C 8
+#define PACK_GF 8
+#define PACK_BYTES 5
+
+#else
+#error "Parameters not supported"
 #endif
 
-int generate_keys_ssk(uint8_t *pk, uint8_t *ssk,
-                      const uint8_t *pkseed, const uint8_t *skseed);
-int generate_keys_esk(uint8_t *pk, uint8_t *esk,
-                      const uint8_t *pkseed, const uint8_t *skseed);
+#define BYTES_GF(x) ((PACK_BYTES * (x) + PACK_GF - 1) / PACK_GF)
 
-int generate_pk_with_ssk(uint8_t *pk, const uint8_t *ssk);
-int generate_pk_with_esk(uint8_t *pk, const uint8_t *esk);
+#define BYTES_PK (BYTES_GF(NUMGF_PK) + SEED_LENGTH_PUBLIC)
+#define BYTES_SIGNATURE (BYTES_GF(NUMGF_SIGNATURE) + BYTES_SALT)
 
-int sign_digest_ssk(uint8_t *pt_signature, const uint8_t *digest,
-                    uint64_t bytes_digest, uint8_t *array_salt,
-                    const uint8_t *ssk);
-int sign_digest_esk(uint8_t *pt_signature, const uint8_t *digest,
-                    uint64_t bytes_digest, uint8_t *array_salt,
-                    const uint8_t *esk);
+#define GF16_HASH (SNOVA_o * SNOVA_l2)
+#define BYTES_HASH (BYTES_GF(GF16_HASH))
 
-int verify_signture(const uint8_t *pt_digest, uint64_t bytes_digest,
-                    const uint8_t *pt_signature, const uint8_t *pk);
-int verify_signture_pkx(const uint8_t *pt_digest, uint64_t bytes_digest,
-                        const uint8_t *pt_signature, const uint8_t *pk);
-int expand_public_pack(uint8_t *pkx, const uint8_t *pk);
-
-#ifdef __cplusplus
-}
+#define SNOVA_alpha (SNOVA_l * SNOVA_l + SNOVA_l)
+#ifdef SYMMETRIC
+#define NUM_GEN_PUB_GF                                                                                            \
+    ((SNOVA_o * (SNOVA_v * (SNOVA_v + 1) / 2 + SNOVA_v * SNOVA_o) + 2 * (SNOVA_o * SNOVA_alpha)) * SNOVA_l2 + \
+     2 * SNOVA_o * SNOVA_alpha * SNOVA_l)
+#else
+#define NUM_GEN_PUB_GF                                                                                  \
+    ((SNOVA_o * (SNOVA_v * SNOVA_v + 2 * SNOVA_v * SNOVA_o) + 2 * (SNOVA_o * SNOVA_alpha)) * SNOVA_l2 + \
+     2 * SNOVA_o * SNOVA_alpha * SNOVA_l)
 #endif
+#define NUM_PUB_GF                                                                                      \
+    ((SNOVA_o * (SNOVA_v * SNOVA_v + 2 * SNOVA_v * SNOVA_o) + 2 * (SNOVA_o * SNOVA_alpha)) * SNOVA_l2 + \
+     2 * SNOVA_o * SNOVA_alpha * SNOVA_l)
+
+#if SNOVA_q != 16
+#define NUM_GEN_PUB_BYTES (NUM_GEN_PUB_GF)
+#else
+#define NUM_GEN_PUB_BYTES (NUM_GEN_PUB_GF / 2)
+#endif
+#define NUM_GEN_SEC_BYTES (BYTES_GF(SNOVA_v * SNOVA_l2))
+
+#define i_prime(mi, alpha) ((alpha + mi) % SNOVA_o)
+
+typedef struct {
+	uint16_t P11[SNOVA_o * SNOVA_n * SNOVA_n * SNOVA_l2];
+	uint16_t T12[SNOVA_o * SNOVA_v * SNOVA_l2];
+	uint16_t F21[SNOVA_o * SNOVA_o * SNOVA_v * SNOVA_l2];
+#ifndef SYMMETRIC
+	uint16_t F12[SNOVA_o * SNOVA_o * SNOVA_v * SNOVA_l2];
+#endif
+	uint16_t Am[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint16_t Bm[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint16_t Q1[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint16_t Q2[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint16_t q1[SNOVA_o * SNOVA_alpha * SNOVA_l];
+	uint16_t q2[SNOVA_o * SNOVA_alpha * SNOVA_l];
+	uint8_t sk_seed[SEED_LENGTH];
+} expanded_SK;
+
+typedef struct {
+	uint16_t P[SNOVA_o * SNOVA_n * SNOVA_n * SNOVA_l2];
+	uint8_t Am[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint8_t Bm[SNOVA_o * SNOVA_alpha * SNOVA_l2];
+	uint8_t q1[SNOVA_o * SNOVA_alpha * SNOVA_l];
+	uint8_t q2[SNOVA_o * SNOVA_alpha * SNOVA_l];
+	uint8_t pk_seed[SEED_LENGTH_PUBLIC];
+} expanded_PK;
+
+int SNOVA_NAMESPACE(genkeys)(uint8_t *pk, uint8_t *sk, const uint8_t *seed);
+int SNOVA_NAMESPACE(sk_expand)(expanded_SK *skx, const uint8_t *sk);
+int SNOVA_NAMESPACE(sign)(const expanded_SK *skx, uint8_t *sig, const uint8_t *digest, const size_t len_digest, const uint8_t *salt);
+int SNOVA_NAMESPACE(pk_expand)(expanded_PK *pkx, const uint8_t *pk);
+int SNOVA_NAMESPACE(verify)(const expanded_PK *pkx, const uint8_t *sig, const uint8_t *digest, const size_t len_digest);
 
 #endif
-

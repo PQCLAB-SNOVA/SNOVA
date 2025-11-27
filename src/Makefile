@@ -3,8 +3,13 @@ ARCH = native
 endif
 
 ifeq ($(OPT),)
-# Default to OPT
+# Autodetect AVX
+AVX2 := $(findstring AVX2, $(shell gcc -march=$(ARCH) -dM -E - < /dev/null))
+ifeq ($(AVX2), AVX2)
+OPT = AVX2
+else
 OPT = OPT
+endif
 endif
 
 CC = gcc
@@ -16,19 +21,21 @@ ifeq ($(OPT), REF)
 OBJS = ./build/snova_ref.o ./build/symmetric_ref.o
 else ifeq ($(OPT), OPT)
 OBJS = ./build/snova_opt.o ./build/symmetric.o
+else ifeq ($(OPT), AVX2)
+OBJS = ./build/snova_avx2.o ./build/symmetric.o
 else
 $(error OPT=$(OPT) is not supported)
 endif
 
 OBJS += ./build/rng.o ./build/sign.o ./build/aes.o
 HDRS = api.h rng.h symmetric.h snova.h snova_params.h
-LIBS = -lcrypto
+# LIBS = -lcrypto
 
 
 all: build kat speed
 
 clean:
-	rm -rf build *.req *.rsp
+	rm -rf build *.req *.rsp *.log
 
 build:
 	mkdir -p build
