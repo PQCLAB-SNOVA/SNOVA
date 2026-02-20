@@ -19,6 +19,8 @@
 #include "rng.h"
 #include "symmetric.h"
 
+#define BYTES_DIGEST 64
+
 int crypto_sign_keypair(unsigned char* pk, unsigned char* sk) {
 	uint8_t seed[SEED_LENGTH];
 
@@ -35,6 +37,7 @@ int crypto_sign_keypair(unsigned char* pk, unsigned char* sk) {
 
 int crypto_sign(unsigned char* sm, unsigned long long* smlen, const unsigned char* m, unsigned long long mlen,
                 const unsigned char *sk) {
+	uint8_t digest[BYTES_DIGEST];
 	uint8_t salt[BYTES_SALT];
 	expanded_SK skx_d;
 
@@ -49,7 +52,9 @@ int crypto_sign(unsigned char* sm, unsigned long long* smlen, const unsigned cha
 	VALGRIND_MAKE_MEM_UNDEFINED(salt, BYTES_SALT);
 #endif
 
-	res = SNOVA_NAMESPACE(sign)(&skx_d, sm, m, mlen, salt);
+	shake256(digest, BYTES_DIGEST, m, mlen);
+
+	res = SNOVA_NAMESPACE(sign)(&skx_d, sm, digest, BYTES_DIGEST, salt);
 	if (!res) {
 		memcpy(sm + CRYPTO_BYTES, m, mlen);
 		*smlen = mlen + CRYPTO_BYTES;
@@ -60,6 +65,7 @@ int crypto_sign(unsigned char* sm, unsigned long long* smlen, const unsigned cha
 
 int crypto_sign_open(unsigned char* m, unsigned long long* mlen, const unsigned char* sm, unsigned long long smlen,
                      const unsigned char *pk) {
+	uint8_t digest[BYTES_DIGEST];
 	expanded_PK pkx;
 
 	if (smlen < CRYPTO_BYTES) {
@@ -71,7 +77,9 @@ int crypto_sign_open(unsigned char* m, unsigned long long* mlen, const unsigned 
 		return -1;
 	}
 
-	res = SNOVA_NAMESPACE(verify)(&pkx, sm, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
+	shake256(digest, BYTES_DIGEST, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
+
+	res = SNOVA_NAMESPACE(verify)(&pkx, sm, digest, BYTES_DIGEST);
 	if (!res) {
 		memcpy(m, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
 		*mlen = smlen - CRYPTO_BYTES;

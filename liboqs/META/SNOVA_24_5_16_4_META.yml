@@ -17,7 +17,7 @@ principal-submitters:
   - Chia-Chun Wang
 implementations:
   - name: opt
-    version: 2.1
+    version: 2.2
     folder_name: .
     compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=24 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4
     signature_keypair: _snova_24_5_16_4_opt_oqs_keypair
@@ -27,7 +27,7 @@ implementations:
     large-stack-usage: false
     supported-platforms: all
   - name: avx2
-    version: 2.1
+    version: 2.2
     folder_name: .
     compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=24 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4
     signature_keypair: _snova_24_5_16_4_avx2_oqs_keypair

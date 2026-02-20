@@ -22,9 +22,6 @@
 
 #include "symmetric.h"
 
-// Size of the message digest in the hash-and-sign paragdigm.
-#define BYTES_DIGEST 64
-
 #define o_SNOVA SNOVA_o
 #define v_SNOVA SNOVA_v
 #define l_SNOVA SNOVA_l
@@ -518,9 +515,7 @@ static void gen_S_array(void) {
  * bytes_prng_public)
  */
 static void pk_expand(const uint8_t* seed, uint8_t* pk_bytes) {
-	snova_pk_expander_t instance;
-	snova_pk_expander_init(&instance, seed, SEED_LENGTH_PUBLIC);
-	snova_pk_expander(pk_bytes, bytes_prng_public, &instance);
+	snova_pk_expand(pk_bytes, NUM_GEN_PUB_BYTES, seed, SEED_LENGTH_PUBLIC);
 }
 
 // Constant time version of: (val != 0)
@@ -796,13 +791,11 @@ static void expand_public_pack_core(uint8_t* pkx_pck, const uint8_t* pk) {
  * createHashOut
  */
 static void createSignedHash(const uint8_t* digest, uint64_t bytes_digest, const uint8_t* pt_public_key_seed,
-                             const uint8_t *array_salt, uint8_t *signed_hash_out, uint8_t *digest16) {
-	// No change to KATs
-	shake256(digest16, BYTES_DIGEST, digest, bytes_digest);
+                             const uint8_t *array_salt, uint8_t *signed_hash_out) {
 	Keccak_HashInstance hashInstance;
 	Keccak_HashInitialize_SHAKE256(&hashInstance);
 	Keccak_HashUpdate(&hashInstance, pt_public_key_seed, 8 * seed_length_public);
-	Keccak_HashUpdate(&hashInstance, digest16, 8 * BYTES_DIGEST);
+	Keccak_HashUpdate(&hashInstance, digest, 8 * bytes_digest);
 	Keccak_HashUpdate(&hashInstance, array_salt, 8 * bytes_salt);
 	Keccak_HashFinal(&hashInstance, NULL);
 	Keccak_HashSqueeze(&hashInstance, signed_hash_out, 8 * bytes_hash);
@@ -1279,8 +1272,7 @@ static int sign_digest_core_gnl_vtl(uint8_t* pt_signature, const uint8_t* digest
 	int flag_redo = 1;
 	uint8_t num_sign = 0;
 
-	uint8_t digest16[BYTES_DIGEST];
-	createSignedHash(digest, bytes_digest, pt_public_key_seed, array_salt, signed_hash, digest16);
+	createSignedHash(digest, bytes_digest, pt_public_key_seed, array_salt, signed_hash);
 
 	// put hash value in GF16 array
 	convert_bytes_to_GF16s(signed_hash, hash_in_GF16, GF16s_hash);
@@ -1302,7 +1294,7 @@ static int sign_digest_core_gnl_vtl(uint8_t* pt_signature, const uint8_t* digest
 		Keccak_HashInstance hashInstance;
 		Keccak_HashInitialize_SHAKE256(&hashInstance);
 		Keccak_HashUpdate(&hashInstance, pt_private_key_seed, 8 * seed_length_private);
-		Keccak_HashUpdate(&hashInstance, digest16, 8 * BYTES_DIGEST);
+		Keccak_HashUpdate(&hashInstance, digest, 8 * bytes_digest);
 		Keccak_HashUpdate(&hashInstance, array_salt, 8 * bytes_salt);
 		Keccak_HashUpdate(&hashInstance, &num_sign, 8);
 		Keccak_HashFinal(&hashInstance, NULL);
@@ -1805,13 +1797,10 @@ static int verify_signture_vtl_core(const uint8_t* pt_digest, uint64_t bytes_dig
 	gf16m_t hash_in_GF16Matrix[m_SNOVA];
 	gf16m_t signature_in_GF16Matrix[n_SNOVA];
 
-	uint8_t digest16[BYTES_DIGEST];
-	shake256(digest16, BYTES_DIGEST, pt_digest, bytes_digest);
-
 	Keccak_HashInstance hashInstance;
 	Keccak_HashInitialize_SHAKE256(&hashInstance);
 	Keccak_HashUpdate(&hashInstance, pkx->pt_public_key_seed, 8 * seed_length_public);
-	Keccak_HashUpdate(&hashInstance, digest16, 8 * BYTES_DIGEST);
+	Keccak_HashUpdate(&hashInstance, pt_digest, 8 * bytes_digest);
 	Keccak_HashUpdate(&hashInstance, pt_salt, 8 * bytes_salt);
 	Keccak_HashFinal(&hashInstance, NULL);
 	Keccak_HashSqueeze(&hashInstance, signed_hash, 8 * bytes_hash);
@@ -1825,7 +1814,7 @@ static int verify_signture_vtl_core(const uint8_t* pt_digest, uint64_t bytes_dig
 	}
 
 	evaluation_vector_vtl(hash_in_GF16Matrix, pkx, signature_in_GF16Matrix);
-	convert_GF16s_to_bytes(hash_in_bytes, (gf16_t * )hash_in_GF16Matrix, m_SNOVA * lsq_SNOVA);
+	convert_GF16s_to_bytes(hash_in_bytes, (gf16_t*)hash_in_GF16Matrix, m_SNOVA * lsq_SNOVA);
 
 	int result = 0;
 	for (int i = 0; i < bytes_hash; ++i) {

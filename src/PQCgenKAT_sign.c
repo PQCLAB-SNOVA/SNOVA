@@ -34,9 +34,9 @@ NIST employees is not subject to copyright protection within the United States.
 #define KAT_DATA_ERROR -3
 #define KAT_CRYPTO_FAILURE -4
 
-int FindMarker(FILE *infile, const char *marker);
-int ReadHex(FILE *infile, unsigned char *A, int Length, char *str);
-void fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L);
+int FindMarker(FILE* infile, const char* marker);
+int ReadHex(FILE* infile, unsigned char* A, int Length, char* str);
+void fprintBstr(FILE* fp, char* S, unsigned char* A, unsigned long long L);
 
 char AlgName[] = CRYPTO_ALGNAME;
 
@@ -118,9 +118,9 @@ int main(void) {
 		}
 		fprintf(fp_rsp, "mlen = %llu\n", mlen);
 
-		m = (unsigned char *)calloc(mlen, sizeof(unsigned char));
-		m1 = (unsigned char *)calloc(mlen + CRYPTO_BYTES, sizeof(unsigned char));
-		sm = (unsigned char *)calloc(mlen + CRYPTO_BYTES, sizeof(unsigned char));
+		m = (unsigned char*)calloc(mlen, sizeof(unsigned char));
+		m1 = (unsigned char*)calloc(mlen + CRYPTO_BYTES, sizeof(unsigned char));
+		sm = (unsigned char*)calloc(mlen + CRYPTO_BYTES, sizeof(unsigned char));
 
 		if (!ReadHex(fp_req, m, (int)mlen, "msg = ")) {
 			printf("ERROR: unable to read 'msg' from <%s>\n", fn_req);
@@ -174,7 +174,7 @@ int main(void) {
 //
 // ALLOW TO READ HEXADECIMAL ENTRY (KEYS, DATA, TEXT, etc.)
 //
-int FindMarker(FILE *infile, const char *marker) {
+int FindMarker(FILE* infile, const char* marker) {
 	char line[MAX_MARKER_LEN];
 	int i, len;
 	int curr_line;
@@ -216,7 +216,7 @@ int FindMarker(FILE *infile, const char *marker) {
 //
 // ALLOW TO READ HEXADECIMAL ENTRY (KEYS, DATA, TEXT, etc.)
 //
-int ReadHex(FILE *infile, unsigned char *A, int Length, char *str) {
+int ReadHex(FILE* infile, unsigned char* A, int Length, char* str) {
 	int i, ch, started;
 	unsigned char ich;
 
@@ -261,7 +261,7 @@ int ReadHex(FILE *infile, unsigned char *A, int Length, char *str) {
 	return 1;
 }
 
-void fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L) {
+void fprintBstr(FILE* fp, char* S, unsigned char* A, unsigned long long L) {
 	unsigned long long i;
 
 	fprintf(fp, "%s", S);

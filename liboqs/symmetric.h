@@ -29,38 +29,38 @@ typedef struct {
 #endif
 } snova_pk_expander_t;
 
-static inline void shake256_init(shake_t *instance) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake256_init(shake_t* instance) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_init(oqs_instance);
 }
 
-static inline void shake_absorb(shake_t *instance, const uint8_t *in, size_t inlen) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake_absorb(shake_t* instance, const uint8_t* in, size_t inlen) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_absorb(oqs_instance, in, inlen);
 }
 
-static inline void shake_finalize(shake_t *instance) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake_finalize(shake_t* instance) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_finalize(oqs_instance);
 }
 
-static inline void shake_squeeze(uint8_t *out, size_t outlen, shake_t *instance) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake_squeeze(uint8_t* out, size_t outlen, shake_t* instance) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_squeeze(out, outlen, oqs_instance);
 	OQS_SHA3_shake256_inc_ctx_release(oqs_instance);
 }
 
-static inline void shake_squeeze_keep(uint8_t *out, size_t outlen, shake_t *instance) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake_squeeze_keep(uint8_t* out, size_t outlen, shake_t* instance) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_squeeze(out, outlen, oqs_instance);
 }
 
-static inline void shake_release(shake_t *instance) {
-	OQS_SHA3_shake256_inc_ctx *oqs_instance = (OQS_SHA3_shake256_inc_ctx *)instance;
+static inline void shake_release(shake_t* instance) {
+	OQS_SHA3_shake256_inc_ctx* oqs_instance = (OQS_SHA3_shake256_inc_ctx*)instance;
 	OQS_SHA3_shake256_inc_ctx_release(oqs_instance);
 }
 
-static inline void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
+static inline void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
 	shake_t instance;
 	shake256_init(&instance);
 	shake_absorb(&instance, in, inlen);
@@ -76,13 +76,13 @@ static inline void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size
 
 #include <aes.h>
 
-static inline void snova_pk_expander_init(snova_pk_expander_t *instance, const uint8_t *seed, size_t input_bytes) {
+static inline void snova_pk_expander_init(snova_pk_expander_t* instance, const uint8_t* seed, size_t input_bytes) {
 	(void)input_bytes;
 	memcpy(instance, seed, 16);
 }
 
-static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_expander_t *instance) {
-	const unsigned char *input = (unsigned char *)instance;
+static inline void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* instance) {
+	const unsigned char *input = (unsigned char*)instance;
 	const uint8_t iv[16] = {0};
 
 	void *state;
@@ -98,13 +98,13 @@ static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_e
  */
 #include <oqs/sha3x4.h>
 
-static inline void snova_pk_expander_init(snova_pk_expander_t *instance, const uint8_t *seed, size_t input_bytes) {
+static inline void snova_pk_expander_init(snova_pk_expander_t* instance, const uint8_t* seed, size_t input_bytes) {
 	(void)input_bytes;
 	memcpy(instance, seed, 16);
 }
 
-static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_expander_t *instance) {
-	uint8_t *pt_seed_array = (uint8_t *)instance;
+static inline void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* instance) {
+	uint8_t *pt_seed_array = (uint8_t*)instance;
 	size_t input_bytes = SEED_LENGTH_PUBLIC;
 	size_t output_bytes = num_bytes;
 	size_t index = 0;
@@ -125,8 +125,8 @@ static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_e
 		block++;
 		uint64_t block_3 = block;
 		block++;
-		OQS_SHA3_shake128_x4_inc_absorb(&hashInstance, (uint8_t *)&block_0, (uint8_t *)&block_1, (uint8_t *)&block_2,
-		                                (uint8_t *)&block_3, 8);
+		OQS_SHA3_shake128_x4_inc_absorb(&hashInstance, (uint8_t*)&block_0, (uint8_t*)&block_1, (uint8_t*)&block_2,
+		                                (uint8_t*)&block_3, 8);
 
 		OQS_SHA3_shake128_x4_inc_finalize(&hashInstance);
 		size_t bytes = output_bytes - index;
@@ -150,13 +150,13 @@ static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_e
  * liboqs version of reference
  */
 
-static inline void snova_pk_expander_init(snova_pk_expander_t *instance, const uint8_t *seed, size_t input_bytes) {
+static inline void snova_pk_expander_init(snova_pk_expander_t* instance, const uint8_t* seed, size_t input_bytes) {
 	(void)input_bytes;
 	memcpy(instance, seed, 16);
 }
 
-static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_expander_t *instance) {
-	uint8_t *pt_seed_array = (uint8_t *)instance;
+static inline void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* instance) {
+	uint8_t *pt_seed_array = (uint8_t*)instance;
 	size_t input_bytes = SEED_LENGTH_PUBLIC;
 	size_t output_bytes = num_bytes;
 	size_t index = 0;
@@ -190,5 +190,11 @@ static inline void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_e
 }
 
 #endif
+
+static void snova_pk_expand(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
+	snova_pk_expander_t instance;
+	snova_pk_expander_init(&instance, in, inlen);
+	snova_pk_expander(out, outlen, &instance);
+}
 
 #endif

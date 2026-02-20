@@ -4,7 +4,7 @@ claimed-nist-level: 5
 length-public-key: 4702
 length-secret-key: 48
 length-signature: 656
-nistkat-sha256: 59997680ae441a7262377c394c8e54f3effa3ba59edccf340b557b2080dced1a
+nistkat-sha256: a6951e2d6157c690996a5f99ab5dc184079d06c9cf95f715d89a24d46a38bc9b
 principal-submitters:
   - Lih-Chung Wang
   - Chun-Yen Chou
@@ -17,7 +17,7 @@ principal-submitters:
   - Chia-Chun Wang
 implementations:
   - name: opt
-    version: 2.1
+    version: 2.2
     folder_name: .
     compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4 -DAESCTR
     signature_keypair: _snova_60_10_23_4_aes_opt_oqs_keypair
@@ -27,7 +27,7 @@ implementations:
     large-stack-usage: false
     supported-platforms: all
   - name: avx2
-    version: 2.1
+    version: 2.2
     folder_name: .
     compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4 -DAESCTR
     signature_keypair: _snova_60_10_23_4_aes_avx2_oqs_keypair
@@ -42,7 +42,7 @@ implementations:
         required_flags:
           - avx2
   - name: neon
-    version: 2.1
+    version: 2.2
     folder_name: .
     compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=60 -DSNOVA_o=10 -DSNOVA_q=23 -DSNOVA_l=4 -DAESCTR
     signature_keypair: _snova_60_10_23_4_aes_neon_oqs_keypair

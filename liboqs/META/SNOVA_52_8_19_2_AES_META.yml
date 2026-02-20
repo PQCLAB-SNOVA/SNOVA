@@ -1,0 +1,59 @@
+name: SNOVA_52_8_19_2_AES
+type: signature
+claimed-nist-level: 3
+length-public-key: 1757
+length-secret-key: 48
+length-signature: 400
+nistkat-sha256: 70b0800c7f86be0aeb1cb8b18abc53e4c4f92be83e0926a5bb20c1a75823719b
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: 2.2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=opt -DSNOVA_v=52 -DSNOVA_o=8 -DSNOVA_q=19 -DSNOVA_l=2 -DSNOVA_r=6 -DSNOVA_m1=24 -DSNOVA_alpha=24 -DAESCTR
+    signature_keypair: _snova_52_8_19_2_aes_opt_oqs_keypair
+    signature_signature: _snova_52_8_19_2_aes_opt_oqs_sign
+    signature_verify: _snova_52_8_19_2_aes_opt_oqs_verify
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported-platforms: all
+  - name: avx2
+    version: 2.2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=avx2 -DSNOVA_v=52 -DSNOVA_o=8 -DSNOVA_q=19 -DSNOVA_l=2 -DSNOVA_r=6 -DSNOVA_m1=24 -DSNOVA_alpha=24 -DAESCTR
+    signature_keypair: _snova_52_8_19_2_aes_avx2_oqs_keypair
+    signature_signature: _snova_52_8_19_2_aes_avx2_oqs_sign
+    signature_verify: _snova_52_8_19_2_aes_avx2_oqs_verify
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_rect_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: round2
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=neon -DSNOVA_v=52 -DSNOVA_o=8 -DSNOVA_q=19 -DSNOVA_l=2 -DSNOVA_r=6 -DSNOVA_m1=24 -DSNOVA_alpha=24 -DAESCTR
+    signature_keypair: _snova_52_8_19_2_aes_neon_oqs_keypair
+    signature_signature: _snova_52_8_19_2_aes_neon_oqs_sign
+    signature_verify: _snova_52_8_19_2_aes_neon_oqs_verify
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_q.c liboqs/snova_oqs.c
+    large-stack-usage: false
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd

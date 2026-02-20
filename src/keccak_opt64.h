@@ -40,7 +40,7 @@ static const uint64_t KeccakF_RoundConstants[NROUNDS] = {
  *
  * Arguments:   - uint64_t *state: pointer to input/output Keccak state
  **************************************************/
-inline static void KeccakF1600_StatePermute(uint64_t *state) {
+inline static void KeccakF1600_StatePermute(uint64_t* state) {
 	int round;
 
 	uint64_t Aba, Abe, Abi, Abo, Abu;
@@ -317,7 +317,7 @@ inline static void KeccakF1600_StatePermute(uint64_t *state) {
  *              - const uint8_t *m: pointer to input to be absorbed into s
  *              - size_t mlen: length of input in bytes
  **************************************************/
-inline static void keccak_inc_absorb(uint64_t *s_inc, uint32_t r, const uint8_t *m, size_t mlen) {
+inline static void keccak_inc_absorb(uint64_t* s_inc, uint32_t r, const uint8_t* m, size_t mlen) {
 	size_t i;
 
 	/* Recall that s_inc[25] is the non-absorbed bytes xored into the state */
@@ -353,7 +353,7 @@ inline static void keccak_inc_absorb(uint64_t *s_inc, uint32_t r, const uint8_t 
  *              - uint8_t p: domain-separation byte for different
  *                                 Keccak-derived functions
  **************************************************/
-inline static void keccak_inc_finalize(uint64_t *s_inc, uint32_t r, uint8_t p) {
+inline static void keccak_inc_finalize(uint64_t* s_inc, uint32_t r, uint8_t p) {
 	/* After keccak_inc_absorb, we are guaranteed that s_inc[25] < r,
 	   so we can always use one more byte for p in the current state. */
 	s_inc[s_inc[25] >> 3] ^= (uint64_t)p << (8 * (s_inc[25] & 0x07));
@@ -374,7 +374,7 @@ inline static void keccak_inc_finalize(uint64_t *s_inc, uint32_t r, uint8_t p) {
  *                that have not been permuted, or not-yet-squeezed bytes.
  *              - uint32_t r: rate in bytes (e.g., 168 for SHAKE128)
  **************************************************/
-inline static void keccak_inc_squeeze(uint8_t *h, size_t outlen, uint64_t *s_inc, uint32_t r) {
+inline static void keccak_inc_squeeze(uint8_t* h, size_t outlen, uint64_t* s_inc, uint32_t r) {
 	size_t i;
 
 	/* First consume any bytes we still have sitting around */

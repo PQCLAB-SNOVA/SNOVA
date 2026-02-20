@@ -2,6 +2,12 @@ SNOVA
 =======
 This directory contains the official constant-time implementation of the SNOVA signature scheme.
 
+Five implementations are provided:
+1. The reference implementation in `snova_ref.c`,
+2. An optimized implementation for odd prime $q$ in `snova_opt_q.c`. This version uses plain-C. For additional optimization on older compilers, it will use AVX2 instructions if available,
+3. An optimized implementation for $q=16$ in `snova_opt_16.c`. This version uses plain-C. For additional optimization it will use AVX2 instructions if available,
+4. Another optimized version for $q=16$ and $l=r$ in `snova_avx2_16.c`. This version uses AVX2 or ARM NEON instructions. For $l \neq 4$ this version is substantially faster than `snova_opt_16.c`.
+
 
 Building
 -------
@@ -18,44 +24,15 @@ make clean all P="-D SNOVA_v=24 -D SNOVA_o=5 -D SNOVA_q=16 -D SNOVA_l=4 -D AESCT
 
 Available optimization options are:
 1. Use `make OPT=REF` to build the reference implementation.
-2. Use `make OPT=OPT` for the plain-C optimized version.
-3. Use `make OPT=AVX2` for a version using AVX2 vectorization instructions, if available.
+2. Use `make OPT=OPT` for the optimized version.
+3. Use `make OPT=AVX2` to use `snova_avx2_16.c` for $q=16$ and $l=2$. For other parameter sets `OPT=AVX2` is identical to `OPT=OPT`.
+
+
+Symmetric Primitives
+-------
 
 The distribution comes with implementations of AES and SHAKE. It is also possible to use the OpenSSL library (version 3.3 or higher), which may be faster on non-AVX2 platforms.
 To use the OpenSSL library build as
 ```
 make clean all P="-D USE_OPENSSL" LIBS=-lcrypto
 ```
-
-Recommended parameters
--------
-
-Our recommended parameter sets for odd prime $q$ all have a matrix rank $l=4$. The following are the recommended parameters:
-
-| SL |        Name      |  v |  o |   q |  l |  sk size |  pk size |  sign size |
-|----|------------------|----|----|-----|----|----------|----------|------------|
-|  1 |  SNOVA_24_5_23_4 | 24 |  5 |  23 |  4 |      48  |      616 |        282 |
-|  1 |  SNOVA_24_5_16_4 | 24 |  5 |  16 |  4 |      48  |     1016 |        248 |
-|  1 | SNOVA_43_17_16_2 | 43 | 17 |  16 |  2 |      48  |     9842 |        136 |
-|  3 |  SNOVA_37_8_19_4 | 37 |  8 |  19 |  4 |      48  |     2269 |        400 |
-|  3 |  SNOVA_37_8_16_4 | 37 |  8 |  16 |  4 |      48  |     4112 |        376 |
-|  3 | SNOVA_69_25_16_2 | 69 | 25 |  16 |  2 |      48  |    31266 |        204 |
-|  5 | SNOVA_60_10_23_4 | 60 | 10 |  23 |  4 |      48  |     4702 |        656 |
-|  5 | SNOVA_60_10_16_4 | 60 | 10 |  16 |  4 |      48  |     8016 |        576 |
-|  5 | SNOVA_99_25_16_2 | 99 | 25 |  16 |  2 |      48  |    71890 |        280 |
-
-
-Performance
--------
-
-The performance of SNOVA depends significantly on the version of the compiler used. The best performance was obtained using gcc version 15.2.1 20250813 on Arch Linux.
-We have observed the following cycle counts for the vectorized `OPT=AVX2` version of SNOVA_24_5_23_4:
-
-| Compiler | version |   Genkey  |     Sign   |  Verify  |
-|----------|---------|-----------|------------|----------|
-|   gcc    |  15.2.1 |   404,634 |    692,838 | 317,819 |
-|   gcc    |  13.3.0 |   405,211 |    900,276 | 322,433 |
-|   gcc    |  11.4.1 |   448,117 |  1,013,698 | 340,407 |
-|  clang   |  20.1.8 |   893,024 |    970,647 | 377,861 |
-
-These cycle counts were collected on an Intel(R) Core(TM) Ultra 7 155H (Meteor Lake) laptop running Arch Linux. We report the median over 2048 benchmark runs.

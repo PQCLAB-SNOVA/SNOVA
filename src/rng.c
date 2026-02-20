@@ -33,7 +33,7 @@ NIST employees is not subject to copyright protection within the United States.
 
 AES256_CTR_DRBG_struct DRBG_ctx;
 
-void AES256_ECB(unsigned char *key, unsigned char *ctr, unsigned char *buffer);
+void AES256_ECB(unsigned char* key, unsigned char* ctr, unsigned char* buffer);
 
 /*
  seedexpander_init()
@@ -42,7 +42,7 @@ void AES256_ECB(unsigned char *key, unsigned char *ctr, unsigned char *buffer);
  diversifier    - an 8 byte diversifier
  maxlen         - maximum number of bytes (less than 2**32) generated under this seed and diversifier
  */
-int seedexpander_init(AES_XOF_struct *ctx, unsigned char *seed, unsigned char *diversifier, unsigned long maxlen) {
+int seedexpander_init(AES_XOF_struct* ctx, unsigned char* seed, unsigned char* diversifier, unsigned long maxlen) {
 	if (maxlen >= 0x100000000) {
 		return RNG_BAD_MAXLEN;
 	}
@@ -73,7 +73,7 @@ int seedexpander_init(AES_XOF_struct *ctx, unsigned char *seed, unsigned char *d
     x    - returns the XOF data
     xlen - number of bytes to return
  */
-int seedexpander(AES_XOF_struct *ctx, unsigned char *x, unsigned long xlen) {
+int seedexpander(AES_XOF_struct* ctx, unsigned char* x, unsigned long xlen) {
 	unsigned long offset;
 
 	if (x == NULL) {
@@ -149,7 +149,7 @@ void AES256_ECB(unsigned char *key, unsigned char *ctr, unsigned char *buffer) {
 }
 #endif
 
-void randombytes_init(unsigned char *entropy_input, unsigned char *personalization_string, int security_strength) {
+void randombytes_init(unsigned char* entropy_input, unsigned char* personalization_string, int security_strength) {
 	unsigned char seed_material[48];
 	(void)security_strength;
 
@@ -164,7 +164,7 @@ void randombytes_init(unsigned char *entropy_input, unsigned char *personalizati
 	DRBG_ctx.reseed_counter = 1;
 }
 
-int randombytes(unsigned char *x, unsigned long long xlen) {
+int randombytes(unsigned char* x, unsigned long long xlen) {
 	unsigned char block[16];
 	int i = 0;
 
@@ -194,7 +194,7 @@ int randombytes(unsigned char *x, unsigned long long xlen) {
 	return RNG_SUCCESS;
 }
 
-void AES256_CTR_DRBG_Update(unsigned char *provided_data, unsigned char *Key, unsigned char *V) {
+void AES256_CTR_DRBG_Update(unsigned char* provided_data, unsigned char* Key, unsigned char* V) {
 	unsigned char temp[48];
 
 	for (int i = 0; i < 3; i++) {

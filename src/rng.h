@@ -43,14 +43,14 @@ typedef struct {
 	int reseed_counter;
 } AES256_CTR_DRBG_struct;
 
-void AES256_CTR_DRBG_Update(unsigned char *provided_data, unsigned char *Key, unsigned char *V);
+void AES256_CTR_DRBG_Update(unsigned char* provided_data, unsigned char* Key, unsigned char* V);
 
-int seedexpander_init(AES_XOF_struct *ctx, unsigned char *seed, unsigned char *diversifier, unsigned long maxlen);
+int seedexpander_init(AES_XOF_struct* ctx, unsigned char* seed, unsigned char* diversifier, unsigned long maxlen);
 
-int seedexpander(AES_XOF_struct *ctx, unsigned char *x, unsigned long xlen);
+int seedexpander(AES_XOF_struct* ctx, unsigned char* x, unsigned long xlen);
 
-void randombytes_init(unsigned char *entropy_input, unsigned char *personalization_string, int security_strength);
+void randombytes_init(unsigned char* entropy_input, unsigned char* personalization_string, int security_strength);
 
-int randombytes(unsigned char *x, unsigned long long xlen);
+int randombytes(unsigned char* x, unsigned long long xlen);
 
 #endif /* rng_h */

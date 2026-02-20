@@ -17,9 +17,6 @@
 #include "stop"
 #endif
 
-// Size of the message digest in the hash-and-sign paragdigm.
-#define BYTES_DIGEST 64
-
 typedef uint8_t gf_t;
 
 static inline uint16_t gf16_expand(const gf_t a) {
@@ -321,25 +318,17 @@ static int expand_pk(gf_t* P22, const uint8_t* pk) {
 static void expand_public(gf_t* P_matrix, const uint8_t* seed) {
 	uint8_t pk_bytes[NUM_GEN_PUB_BYTES];
 
-	snova_pk_expander_t instance;
-	snova_pk_expander_init(&instance, seed, SEED_LENGTH_PUBLIC);
-	snova_pk_expander(pk_bytes, NUM_GEN_PUB_BYTES, &instance);
+	snova_pk_expand(pk_bytes, NUM_GEN_PUB_BYTES, seed, SEED_LENGTH_PUBLIC);
 
 	convert_bytes_to_GF(P_matrix, (uint8_t*)pk_bytes, NUM_GEN_PUB_GF);
 }
 
 static void hash_combined(uint8_t* hash_out, const uint8_t* digest, size_t len_digest, const uint8_t* pk_seed,
-                          const uint8_t *salt, uint8_t *digest16) {
+                          const uint8_t *salt) {
 	shake_t state;
 	shake256_init(&state);
 	shake_absorb(&state, pk_seed, SEED_LENGTH_PUBLIC);
-#if SNOVA_q == 16
-	// No change to KATs
-	shake256(digest16, BYTES_DIGEST, digest, len_digest);
-	shake_absorb(&state, digest16, BYTES_DIGEST);
-#else
 	shake_absorb(&state, digest, len_digest);
-#endif
 	shake_absorb(&state, salt, BYTES_SALT);
 	shake_finalize(&state);
 	shake_squeeze(hash_out, BYTES_HASH, &state);
@@ -634,8 +623,7 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t* sig, const uint8_t* d
 	gf_t hash_in_GF16[GF16_HASH];
 
 	uint8_t sign_hashb[BYTES_HASH];
-	uint8_t digest16[BYTES_DIGEST];
-	hash_combined(sign_hashb, digest, len_digest, skx->sk_seed, salt, digest16);
+	hash_combined(sign_hashb, digest, len_digest, skx->sk_seed, salt);
 	expand_gf(hash_in_GF16, sign_hashb, GF16_HASH);
 
 	// Find a solution for T.X
@@ -661,7 +649,7 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t* sig, const uint8_t* d
 
 		shake256_init(&v_instance);
 		shake_absorb(&v_instance, skx->sk_seed + SEED_LENGTH_PUBLIC, SEED_LENGTH_PRIVATE);
-		shake_absorb(&v_instance, digest16, BYTES_DIGEST);
+		shake_absorb(&v_instance, digest, len_digest);
 		shake_absorb(&v_instance, salt, BYTES_SALT);
 		shake_absorb(&v_instance, &num_sign, 1);
 		shake_finalize(&v_instance);
@@ -1270,9 +1258,8 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK* pkx, const uint8_t* sig, const ui
 	 */
 	uint8_t signed_bytes[BYTES_HASH];
 	uint8_t signed_gf[GF16_HASH] = {0};
-	uint8_t digest16[BYTES_DIGEST];
 	const uint8_t *salt = sig + BYTES_SIGNATURE - BYTES_SALT;
-	hash_combined(signed_bytes, digest, len_digest, pkx->pk_seed, salt, digest16);
+	hash_combined(signed_bytes, digest, len_digest, pkx->pk_seed, salt);
 	expand_gf(signed_gf, signed_bytes, GF16_HASH);
 
 	for (int i = 0; i < GF16_HASH; ++i) {

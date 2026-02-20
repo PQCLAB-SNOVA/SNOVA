@@ -18,7 +18,7 @@
 #define SYMMETRIC
 #endif
 
-#define FIXED_ABQ (SNOVA_l < 4)
+#define FIXED_ABQ ((SNOVA_q != 16) || (SNOVA_l < 4))
 
 #ifdef AESCTR
 #define PKX_NAME _aes_
@@ -125,7 +125,7 @@
 
 #define SNOVA_alpha (SNOVA_l * SNOVA_l + SNOVA_l)
 #ifdef SYMMETRIC
-#define NUM_GEN_PUB_GF                                                                                            \
+#define NUM_GEN_PUB_GF                                                                                        \
     ((SNOVA_o * (SNOVA_v * (SNOVA_v + 1) / 2 + SNOVA_v * SNOVA_o) + 2 * (SNOVA_o * SNOVA_alpha)) * SNOVA_l2 + \
      2 * SNOVA_o * SNOVA_alpha * SNOVA_l)
 #else
@@ -171,10 +171,11 @@ typedef struct {
 	uint8_t pk_seed[SEED_LENGTH_PUBLIC];
 } expanded_PK;
 
-int SNOVA_NAMESPACE(genkeys)(uint8_t *pk, uint8_t *sk, const uint8_t *seed);
-int SNOVA_NAMESPACE(sk_expand)(expanded_SK *skx, const uint8_t *sk);
-int SNOVA_NAMESPACE(sign)(const expanded_SK *skx, uint8_t *sig, const uint8_t *digest, const size_t len_digest, const uint8_t *salt);
-int SNOVA_NAMESPACE(pk_expand)(expanded_PK *pkx, const uint8_t *pk);
-int SNOVA_NAMESPACE(verify)(const expanded_PK *pkx, const uint8_t *sig, const uint8_t *digest, const size_t len_digest);
+int SNOVA_NAMESPACE(genkeys)(uint8_t* pk, uint8_t* sk, const uint8_t* seed);
+int SNOVA_NAMESPACE(sk_expand)(expanded_SK* skx, const uint8_t* sk);
+int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t* sig, const uint8_t* digest, const size_t len_digest,
+                          const uint8_t *salt);
+int SNOVA_NAMESPACE(pk_expand)(expanded_PK* pkx, const uint8_t* pk);
+int SNOVA_NAMESPACE(verify)(const expanded_PK* pkx, const uint8_t* sig, const uint8_t* digest, const size_t len_digest);
 
 #endif

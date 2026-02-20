@@ -97,6 +97,15 @@ void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
 /**
  * SNOVA public key expander
  */
+typedef struct {
+#if __AVX512F__
+	uint64_t state[406];
+#elif __AVX2__
+	uint64_t state[206];
+#else
+	uint64_t state[56];
+#endif
+} snova_pk_expander_t;
 
 #if defined(AESCTR)
 
@@ -226,3 +235,9 @@ void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* arg
 	}
 }
 #endif
+
+void snova_pk_expand(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
+	snova_pk_expander_t instance;
+	snova_pk_expander_init(&instance, in, inlen);
+	snova_pk_expander(out, outlen, &instance);
+}

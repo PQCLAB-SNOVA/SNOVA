@@ -7,9 +7,5 @@
 #include "snova_avx2_16.c"
 #endif
 #else
-#if __GNUC__ >= 15
 #include "snova_opt_q.c"
-#else
-#include "snova_avx2_q.c"
-#endif
 #endif

@@ -12,37 +12,37 @@
 #include "snova.h"
 #include "symmetric.h"
 
-void shake128_init(shake_t *instance) {
+void shake128_init(shake_t* instance) {
 	memset(instance, 0, sizeof(shake_t));
 	instance->state[26] = 168;
 }
 
-void shake256_init(shake_t *instance) {
+void shake256_init(shake_t* instance) {
 	memset(instance, 0, sizeof(shake_t));
 	instance->state[26] = 136;
 }
 
-void shake_absorb(shake_t *instance, const uint8_t *in, size_t inlen) {
+void shake_absorb(shake_t* instance, const uint8_t* in, size_t inlen) {
 	keccak_inc_absorb(instance->state, instance->state[26], in, inlen);
 }
 
-void shake_finalize(shake_t *instance) {
+void shake_finalize(shake_t* instance) {
 	keccak_inc_finalize(instance->state, instance->state[26], 0x1F);
 }
 
-void shake_squeeze(uint8_t *out, size_t outlen, shake_t *instance) {
+void shake_squeeze(uint8_t* out, size_t outlen, shake_t* instance) {
 	keccak_inc_squeeze(out, outlen, instance->state, instance->state[26]);
 }
 
-void shake_squeeze_keep(uint8_t *out, size_t outlen, shake_t *instance) {
+void shake_squeeze_keep(uint8_t* out, size_t outlen, shake_t* instance) {
 	keccak_inc_squeeze(out, outlen, instance->state, instance->state[26]);
 }
 
-void shake_release(shake_t *instance) {
+void shake_release(shake_t* instance) {
 	(void)instance;
 }
 
-void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
+void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
 	shake_t instance;
 	shake256_init(&instance);
 	shake_absorb(&instance, in, inlen);
@@ -53,6 +53,9 @@ void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
 /**
  * Reference SNOVA public key expander
  */
+typedef struct {
+	uint64_t state[56];
+} snova_pk_expander_t;
 
 #if defined(AESCTR)
 
@@ -70,18 +73,18 @@ void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* ins
 
 #else
 
-void snova_pk_expander_init(snova_pk_expander_t *ref_instance, const uint8_t *seed, size_t input_bytes) {
+void snova_pk_expander_init(snova_pk_expander_t* ref_instance, const uint8_t* seed, size_t input_bytes) {
 	assert(input_bytes <= 152);
 
-	shake_t *instance = (shake_t *)ref_instance;
+	shake_t *instance = (shake_t*)ref_instance;
 	shake128_init(instance);
 	shake_absorb(instance, seed, input_bytes);
 }
 
-void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_expander_t *instance) {
+void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* instance) {
 	uint64_t index = 0;
 	uint64_t block = 0;
-	size_t rate = ((shake_t *)instance)->state[26];
+	size_t rate = ((shake_t*)instance)->state[26];
 
 	while (index < num_bytes) {
 		shake_t block_instance;
@@ -109,3 +112,9 @@ void snova_pk_expander(uint8_t *data, size_t num_bytes, snova_pk_expander_t *ins
 }
 
 #endif
+
+void snova_pk_expand(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
+	snova_pk_expander_t instance;
+	snova_pk_expander_init(&instance, in, inlen);
+	snova_pk_expander(out, outlen, &instance);
+}
