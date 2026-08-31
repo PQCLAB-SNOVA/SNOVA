@@ -1,11 +1,22 @@
+ifeq ($(ARCH),)
+ARCH = native
+endif
+
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -O3
-OBJS = ./build/snova_ref.o ./build/symmetric_ref.o ./build/rng.o ./build/sign.o ./build/aes.o
+# CC = clang
+
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -O3 -march=$(ARCH) -mtune=$(ARCH)
+# CFLAGS += -g -fstack-usage
+# CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize-address-use-after-scope
+# CFLAGS += -fsanitize=memory
+CFLAGS += -DSNOVA_OPT=0
+
+OBJS += ./build/snova_ref.o ./build/symmetric_ref.o ./build/rng.o ./build/sign.o ./build/aes.o
 HDRS = api.h rng.h symmetric.h snova.h snova_params.h
 # LIBS = -lcrypto
 
 
-all: build kat
+all: build kat speed
 
 clean:
 	rm -rf build *.req *.rsp *.log

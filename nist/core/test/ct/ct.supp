@@ -1,0 +1,17 @@
+# valgrind-CT suppression file - INTENTIONALLY EMPTY: zero rules.
+#
+# Policy: only public-data exceptions may be suppressed; anything else must be fixed in the code.
+#
+# Why empty (2026-07-29):
+#   Two rules used to cover the odd-q private-key rejection sampling in expand_T12
+#   (mirroring SNOVA-DEV's constant_time entry "Rejection sampling of secret key").
+#   That exception is now expressed at the site itself via the ENGINE-NEUTRAL
+#   SNOVA_CT_DECLASSIFY (decision bit only; the value stays SECRET), so both valgrind
+#   and MSan honour it and the function-wide suppression is no longer needed.
+#
+#      A function-wide suppression also swallows REAL leaks in that function.
+#      First ask whether SNOVA_CT_DECLASSIFY at the site, at the narrowest granularity,
+#      can express it instead: that works for both engines; a suppression only works for valgrind.
+#      The gate requires "suppressed: 0 from 0" on EVERY cell (all sets, odd-q included), so a new
+#      rule turns that cell RED by design: adding one requires changing the criterion and justifying it.
+#      Name lines must match [A-Za-z0-9_-] only (public-tree audit; no internal wording).

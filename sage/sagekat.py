@@ -2,7 +2,7 @@
 #
 # Generate response KAT digest from SageMath SNOVA
 #
-# Copyright (c) 2025 SNOVA TEAM
+# Copyright (c) 2026 SNOVA TEAM
 
 import math
 import os
@@ -12,31 +12,31 @@ import sys
 from hashlib import shake_256
 
 
-variants = [
-    [28, 5, 19, 4],
-    [24, 5, 16, 4],
-    [48, 17, 16, 2],
-    [48, 16, 19, 2],
-    [28, 4, 16, 4, 5],
-    [28, 4, 19, 4, 5],
+recommended = [
+    ['SNOVA_I_K', 29, 3, 16, 4, 8, 5],
+    ['SNOVA_I_B', 27, 4, 16, 4, 6, 5],
+    ['SNOVA_I_S', 27, 5, 16, 4, 4, 5],
 
-    [40, 7, 19, 4],
-    [37, 8, 16, 4],
-    [72, 25, 16, 2],
-    [72, 24, 19, 2],
-    [38, 5, 16, 4, 5],
-    [38, 5, 19, 4, 5],
+    ['SNOVA_III_K', 38, 4, 16, 4, 8, 7],
+    ['SNOVA_III_B', 38, 5, 16, 4, 6, 7],
+    ['SNOVA_III_S', 38, 6, 16, 4, 5, 7],
 
-    [50, 9, 19, 4],
-    [60, 10, 16, 4],
-    [97, 33, 16, 2],
-    [96, 32, 19, 2],
-    [52, 6, 16, 4, 6],
-    [52, 6, 19, 4, 6],
+    ['SNOVA_V_K', 40, 4, 16, 5, 8, 6],
+    ['SNOVA_V_B', 40, 5, 16, 5, 6, 6],
+    ['SNOVA_V_S', 40, 6, 16, 5, 5, 6],
 ]
 
 
-for var in variants:
+for paramset in recommended:
+    pname = paramset[0]
+
+    if paramset[1] == 'Sym':
+        var = paramset[2:]
+        symmetric = True
+    else:
+        var = paramset[1:]
+        symmetric = False
+
     v = var[0]
     o = var[1]
     q = var[2]
@@ -50,35 +50,31 @@ for var in variants:
     if len(var) > 5:
         m1 = var[5]
     else:
-        m1 = math.ceil(o * r / l)
-
-    if len(var) > 6:
-        n_alpha = var[6]
-    else:
-        n_alpha = l * r + r
+        m1 = math.floor(o * r / l)
 
     for aes in [True, False]:
-        name = f"SNOVA_{v}_{o}_{q}_{l if l == r else f'{l}x{r}'}{'_AES' if aes else ''}"
+        name = pname + '_AES' if aes else pname
 
         with open('snova.sage') as infile:
             data = infile.read()
 
         # Create sage file from parameters
         param_dict = {
-            "print('# SNOVA', v, o, q, l, 'AES' if aes else 'SHAKE', r, m1, n_alpha)":
+            "print('# SNOVA', v, o, q, l, r, m1, m2, 'AES' if aes else 'SHAKE', n_alpha)":
             f"print('# {name}')",
-            "v = 28": f"v = {v}",
+            "v = 27": f"v = {v}",
             "o = 5": f"o = {o}",
-            "q = 19": f"q = {q}",
+            "q = 16": f"q = {q}",
             "l = 4": f"l = {l}",
-            "aes = False": f"aes = {aes}",
             "r = l": f"r = {r}",
-            "m1 = math.ceil(o * r / l)": f"m1 = {m1}",
-            "n_alpha = r * r + r": f"n_alpha = {n_alpha}",
+            "m1 = 5": f"m1 = {m1}",
+            "aes = False": f"aes = {aes}",
             "range(1)": "range(100)",
         }
         for key in param_dict.keys():
             data = data.replace(key, param_dict[key])
+        if symmetric:
+            data = data.replace('ASYMMETRIC_PUBMAT = True', 'ASYMMETRIC_PUBMAT = False')
 
         with open(f'_{name}.sage', 'w') as outfile:
             outfile.write(data)

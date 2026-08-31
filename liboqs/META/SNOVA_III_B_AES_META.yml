@@ -1,0 +1,76 @@
+name: SNOVA_III_B_AES
+type: signature
+claimed-nist-level: 3
+length-public-key: 1416
+length-secret-key: 96
+length-signature: 532
+nistkat-sha256: f14fdcae1608c387043f5534937d6f39f61926fd18694be79c0039d12649847f
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Hao Guo
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Peigen Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=10 -DSNOVA_NAME=SNOVA_III_B_AES -DSNOVA_v=38 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4 -DSNOVA_r=6 -DAESCTR
+    signature_keypair: _SNOVA_III_B_AES_opt_oqs_keypair
+    signature_signature: _SNOVA_III_B_AES_opt_oqs_sign
+    signature_verify: _SNOVA_III_B_AES_opt_oqs_verify
+    sources: LICENSE
+    common_dep: snova_opt_16
+    large-stack-usage: true
+    supported-platforms: all
+  - name: avx2
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=20 -DSNOVA_NAME=SNOVA_III_B_AES -DSNOVA_v=38 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4 -DSNOVA_r=6 -DAESCTR
+    signature_keypair: _SNOVA_III_B_AES_avx2_oqs_keypair
+    signature_signature: _SNOVA_III_B_AES_avx2_oqs_sign
+    signature_verify: _SNOVA_III_B_AES_avx2_oqs_verify
+    common_dep: snova_avx2_16
+    sources: LICENSE
+    large-stack-usage: true
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=11 -DSNOVA_NAME=SNOVA_III_B_AES -DSNOVA_v=38 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4 -DSNOVA_r=6 -DAESCTR
+    signature_keypair: _SNOVA_III_B_AES_neon_oqs_keypair
+    signature_signature: _SNOVA_III_B_AES_neon_oqs_sign
+    signature_verify: _SNOVA_III_B_AES_neon_oqs_verify
+    sources: LICENSE
+    common_dep: snova_opt_16
+    large-stack-usage: true
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd
+  - name: memopt
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=5 -DSNOVA_NAME=SNOVA_III_B_AES -DSNOVA_v=38 -DSNOVA_o=5 -DSNOVA_q=16 -DSNOVA_l=4 -DSNOVA_r=6 -DAESCTR
+    signature_keypair: _SNOVA_III_B_AES_memopt_oqs_keypair
+    signature_signature: _SNOVA_III_B_AES_memopt_oqs_sign
+    signature_verify: _SNOVA_III_B_AES_memopt_oqs_verify
+    sources: src/abq_snova_iii_b.h
+    common_dep: snova_memopt_16
+    large-stack-usage: false
+    memory_optimized: true
+    supported-platforms: all

@@ -3,20 +3,21 @@
 /**
  * Glue code between SNOVA and liboqs
  *
- * Copyright (c) 2025 SNOVA TEAM
+ * Copyright (c) 2026 SNOVA TEAM
  */
 
 #include <oqs/oqs.h>
+#include <string.h>
 
 #include "snova.h"
 #include "symmetric.h"
 
-OQS_STATUS SNOVA_NAMESPACE(oqs_keypair)(uint8_t* pk, uint8_t* sk) {
-	uint8_t seed_pair[SEED_LENGTH];
+OQS_STATUS SNOVA_NAMESPACE(oqs_keypair)(uint8_t *pk, uint8_t *sk) {
+	uint8_t seed_pair[SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE];
 	uint8_t *pt_private_key_seed;
 	uint8_t *pt_public_key_seed;
 
-	OQS_randombytes(seed_pair, SEED_LENGTH);
+	OQS_randombytes(seed_pair, SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE);
 	pt_public_key_seed = seed_pair;
 
 	int res = SNOVA_NAMESPACE(genkeys)(pk, sk, pt_public_key_seed);
@@ -28,47 +29,61 @@ OQS_STATUS SNOVA_NAMESPACE(oqs_keypair)(uint8_t* pk, uint8_t* sk) {
 	}
 }
 
-OQS_STATUS SNOVA_NAMESPACE(oqs_sign)(uint8_t* signature, size_t* signature_len, const uint8_t* message, size_t message_len,
+OQS_STATUS SNOVA_NAMESPACE(oqs_sign)(uint8_t *signature, size_t *signature_len, const uint8_t *message, size_t message_len,
                                      const uint8_t *secret_key) {
 	uint8_t digest[BYTES_DIGEST];
-	expanded_SK skx_d;
 	uint8_t salt[BYTES_SALT];
+	uint8_t sig[BYTES_SIGNATURE];
+	int res;
 
 	OQS_randombytes(salt, BYTES_SALT);
 
-	int res = SNOVA_NAMESPACE(sk_expand)(&skx_d, secret_key);
+#if SNOVA_OPT == 5
+	expanded_SK *pskx = (expanded_SK *)secret_key;
+#else
+	expanded_SK skx_d;
+	expanded_SK *pskx = &skx_d;
+	res = SNOVA_NAMESPACE(sk_expand)(pskx, secret_key);
 	if (res) {
 		return OQS_ERROR;
 	}
+#endif
 
 	shake256(digest, BYTES_DIGEST, message, message_len);
 
-	res = SNOVA_NAMESPACE(sign)(&skx_d, signature, digest, BYTES_DIGEST, salt);
+	res = SNOVA_NAMESPACE(sign)(pskx, sig, digest, BYTES_DIGEST, salt);
 	if (res) {
 		return OQS_ERROR;
 	} else {
+		memcpy(signature, sig, BYTES_SIGNATURE);
 		*signature_len = BYTES_SIGNATURE;
 		return OQS_SUCCESS;
 	}
 }
 
-OQS_STATUS SNOVA_NAMESPACE(oqs_verify)(const uint8_t* signature, size_t signature_len, const uint8_t* message,
+OQS_STATUS SNOVA_NAMESPACE(oqs_verify)(const uint8_t *signature, size_t signature_len, const uint8_t *message,
                                        size_t message_len, const uint8_t *pk) {
-	uint8_t digest[BYTES_DIGEST];
-	expanded_PK pkx;
-
 	if (signature_len != BYTES_SIGNATURE) {
 		return OQS_ERROR;
 	}
 
-	int res = SNOVA_NAMESPACE(pk_expand)(&pkx, pk);
+	int res;
+
+#if SNOVA_OPT == 5
+	expanded_PK *ppkx = (expanded_PK *)pk;
+#else
+	expanded_PK pkx;
+	expanded_PK *ppkx = &pkx;
+	res = SNOVA_NAMESPACE(pk_expand)(ppkx, pk);
 	if (res) {
 		return OQS_ERROR;
 	}
+#endif
 
+	uint8_t digest[BYTES_DIGEST];
 	shake256(digest, BYTES_DIGEST, message, message_len);
 
-	res = SNOVA_NAMESPACE(verify)(&pkx, signature, digest, BYTES_DIGEST);
+	res = SNOVA_NAMESPACE(verify)(ppkx, signature, digest, BYTES_DIGEST);
 	if (res) {
 		return OQS_ERROR;
 	} else {

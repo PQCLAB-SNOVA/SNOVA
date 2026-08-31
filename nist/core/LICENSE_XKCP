@@ -1,0 +1,19 @@
+License for vendored XKCP (eXtended Keccak Code Package) components
+under src/third_party/shake_xkcp/.
+
+The Keccak sponge function was designed by Guido Bertoni, Joan Daemen,
+Michael Peeters and Gilles Van Assche. The vendored implementation files
+carry the following notice from their authors ("the implementer",
+as denoted in each file header — Gilles Van Assche, Ronny Van Keer,
+and/or the designers):
+
+    To the extent possible under law, the implementer has waived all
+    copyright and related or neighboring rights to the source code in
+    the corresponding file.
+    https://creativecommons.org/publicdomain/zero/1.0/
+
+That is, these files are distributed under the CC0 1.0 Universal
+public-domain dedication as declared in their headers. See each file's
+header for its exact attribution. Files in this directory that were
+added or modified by the SNOVA Team are covered by the top-level MIT
+LICENSE of this distribution.

@@ -1,8 +1,8 @@
 SNOVA
 =======
-This directory contains a tool to create the recommended SNOVA 2.2 instances.
+This directory contains a tool to create the recommended SNOVA Round 3 instances, as well as the short signature alternatives.
 
-Use `make` to create `ref`, `opt`, and `avx2` directories.
+Use `make` to create `ref`, `opt`, `avx2`, and `mem` directories.
 
 In one of those directories use e.g.
 ```
@@ -16,6 +16,6 @@ Building SNOVA requires a C compiler and `make`.
 
 # KAT digests
 
-This directory contains KAT digests for SNOVA 2.3. It is the output of `make digest` after building.
+This directory contains a file `KATs` with 24 byte SHAKE256 digests. It is the output of `make digest` after building.
 
-The official KAT files can be found in the repository https://github.com/PQCLAB-SNOVA/SNOVA_KAT. The KAT files for q=16, l=4 have not been changed since Round 2.
+The official SNOVA Round 3 KAT files can be found online in the repository https://github.com/PQCLAB-SNOVA/SNOVA_KAT.

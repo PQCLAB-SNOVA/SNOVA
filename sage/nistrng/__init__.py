@@ -6,7 +6,6 @@ def rng(seed):
 
 def aesctr(seed, num, iv=0):
     res = bytearray()
-    # Qorks for QR-UOV as iv < 255
     block_i = iv << 64
     cipher = pyaes.AESModeOfOperationECB(bytes(seed))
     while len(res) < num:

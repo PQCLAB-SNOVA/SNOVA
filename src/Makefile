@@ -9,12 +9,24 @@ endif
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -O3 -march=$(ARCH) -mtune=$(ARCH)
 # CFLAGS += -g -fstack-usage
+# CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize-address-use-after-scope
 
 # Select appropriate source file
 ifeq ($(OPT), REF)
 OBJS = ./build/snova_ref.o ./build/symmetric_ref.o
+CFLAGS += -DSNOVA_OPT=0
 else ifeq ($(OPT), OPT)
-OBJS = ./build/snova_opt.o ./build/symmetric.o
+OBJS = ./build/snova_opt_16.o ./build/symmetric.o
+CFLAGS += -DSNOVA_OPT=10
+else ifeq ($(OPT), OPT2)
+OBJS = ./build/snova_opt_16_2.o ./build/symmetric.o
+CFLAGS += -DSNOVA_OPT=21
+else ifeq ($(OPT), AVX2)
+OBJS = ./build/snova_avx2_16.o ./build/symmetric.o
+CFLAGS += -DSNOVA_OPT=20
+else ifeq ($(OPT), MEM)
+OBJS = ./build/snova_memopt_16.o ./build/symmetric.o
+CFLAGS += -DSNOVA_OPT=5
 else
 $(error OPT=$(OPT) is not supported)
 endif

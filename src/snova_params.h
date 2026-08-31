@@ -1,33 +1,56 @@
 #if 0
 
-#define SNOVA_v 42
-#define SNOVA_o 6
-#define SNOVA_q 19
-#define SNOVA_l 2
-#define SNOVA_r 6
-#define SNOVA_m1 16
-#define SNOVA_alpha 20
-
-#elif 0
-
-#define SNOVA_v 28
+#define SNOVA_v 27
 #define SNOVA_o 4
 #define SNOVA_q 16
 #define SNOVA_l 4
-#define SNOVA_r 5
+#define SNOVA_r 6
+#define SNOVA_m1 5
+#define SNOVA_NAME SNOVA_I_B
 
 #elif 0
 
-#define SNOVA_v 48
-#define SNOVA_o 16
-#define SNOVA_q 19
+// Alternative Parameter Set: Small signature
+
+#define SNOVA_v 50
+#define SNOVA_o 17
+#define SNOVA_q 16
 #define SNOVA_l 2
+#define SNOVA_r 2
+#define SNOVA_m1 SNOVA_o
+#define SNOVA_NAME SNOVA_I_X_AES
+#define AESCTR
+
+#elif 0
+
+#define SNOVA_v 29
+#define SNOVA_o 3
+#define SNOVA_q 16
+#define SNOVA_l 4
+#define SNOVA_r 8
+#define SNOVA_m1 5
+#define SNOVA_NAME SNOVA_I_K_AES
+
+#elif 0
+
+#define SNOVA_v 40
+#define SNOVA_o 5
+#define SNOVA_q 16
+#define SNOVA_l 5
+#define SNOVA_r 6
+#define SNOVA_m1 6
+#define SNOVA_NAME SNOVA_V_B_AES
 
 #else
 
-#define SNOVA_v 28
+#define SNOVA_v 27
 #define SNOVA_o 5
-#define SNOVA_q 19
+#define SNOVA_q 16
 #define SNOVA_l 4
+#define SNOVA_r 4
+#define SNOVA_m1 5
+#define SNOVA_NAME SNOVA_I_S_AES
 
 #endif
+
+#define AESCTR

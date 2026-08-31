@@ -1,0 +1,209 @@
+# Valgrind suppression file for SNOVA
+#
+# Usage example:
+#
+# make clean all P="-DVALGRIND -g"
+# make clean all P="-DVALGRIND -g -DUSE_GFNI=0"
+# valgrind --max-stackframe=6000000 --suppressions=constant_time -s --gen-suppressions=all --log-file=memcheck.log build/speed
+
+
+# Rejection sampling
+
+{
+   Condition depends on the sign return value
+   Memcheck:Cond
+   src:sign.c:57
+}
+
+# Odd q
+
+{
+   Rejection sampling of secret key
+   Memcheck:Value8
+   src:snova_opt_q_s.c:483
+}
+
+{
+   Rejection sampling of secret key
+   Memcheck:Cond
+   src:snova_opt_q_s.c:476
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_opt_q_s.c:1279
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_opt_q_s.c:1315
+}
+
+# odd q, Rectangular
+
+{
+   Rejection sampling of secret key
+   Memcheck:Value8
+   src:snova_opt_q_r.c:483
+}
+
+{
+   Rejection sampling of secret key
+   Memcheck:Cond
+   src:snova_opt_q_r.c:476
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_opt_q_r.c:1168
+}
+
+{
+   Rejection sampling when no valid solution was found, Odd q
+   Memcheck:Cond
+   src:snova_opt_q_r.c:1204
+}
+
+# q=16
+
+{
+   Rejection sampling when no valid solution was found, q=16, no GFNI
+   Memcheck:Cond
+   src:snova_opt_16.c:1218
+}
+
+{
+   Rejection sampling when no valid solution was found, q=16, no GFNI
+   Memcheck:Cond
+   src:snova_opt_16.c:1250
+}
+
+# q=16, l=2
+
+{
+   Rejection sampling when no valid solution was found
+   Memcheck:Cond
+   src:snova_opt_16_2.c:1375
+}
+
+{
+   Rejection sampling when no valid solution was found
+   Memcheck:Cond
+   src:snova_opt_16_2.c:1407
+}
+
+# q=16, l=5
+
+{
+   Rejection sampling when no valid solution was found, q=16, no GFNI
+   Memcheck:Cond
+   src:snova_opt_16_5.c:1240
+}
+
+{
+   Rejection sampling when no valid solution was found, q=16, no GFNI
+   Memcheck:Cond
+   src:snova_opt_16_5.c:1272
+}
+
+# Only dependent on Public key
+
+{
+   ABQ expansion, used only for A and B
+   Memcheck:Cond
+   fun:be_invertible_by_add_aS
+}
+
+{
+   Public ABQ expansion
+   Memcheck:Value8
+   ...
+   fun:gen_ABQ
+}
+
+{
+   Public ABQ expansion
+   Memcheck:Cond
+   ...
+   fun:gen_ABQ
+}
+
+{
+   Verify function
+   Memcheck:Value8
+   ...
+   fun:crypto_sign_open
+}
+
+{
+   Verify function
+   Memcheck:Cond
+   ...
+   fun:crypto_sign_open
+}
+
+# Test tools
+
+{
+   Print public KAT file
+   Memcheck:Value8
+   ...
+   fun:fprintBstr
+}
+
+{
+   Print public KAT file
+   Memcheck:Cond
+   ...
+   fun:fprintBstr
+}
+
+{
+   Check the public KAT result
+   Memcheck:Cond
+   src:PQCgenKAT_sign.c:139
+}
+
+{
+   Test tool
+   Memcheck:Cond
+   src:speed.c:229
+}
+
+{
+   Test tool
+   Memcheck:Cond
+   ...
+   src:speed.c:247
+}
+
+{
+   Test tool
+   Memcheck:Cond
+   ...
+   src:speed.c:249
+}
+
+{
+   Test tool
+   Memcheck:Cond
+   ...
+   src:speed.c:251
+}
+
+{
+   Test tool
+   Memcheck:Cond
+   ...
+   fun:print_number
+}
+
+{
+   Test tool
+   Memcheck:Value8
+   ...
+   fun:print_number
+}

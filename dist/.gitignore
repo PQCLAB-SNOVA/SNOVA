@@ -1,3 +1,5 @@
 ref
 opt
 avx2
+gfni
+mem

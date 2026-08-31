@@ -3,245 +3,112 @@
 # Usage example:
 #
 # make clean all P="-DVALGRIND -g"
+# make clean all P="-DVALGRIND -g -DUSE_GFNI=0"
 # valgrind --max-stackframe=6000000 --suppressions=constant_time -s --gen-suppressions=all --log-file=memcheck.log build/speed
 
 
 # Rejection sampling
 
-# Odd q
-
 {
-   Rejection sampling of secret key
-   Memcheck:Value8
-   src:snova_opt_q.c:449
-}
-
-{
-   Rejection sampling of secret key
+   Condition depends on the sign return value
    Memcheck:Cond
-   src:snova_opt_q.c:442
-}
-
-{
-   Rejection sampling when no valid solution was found, Odd q
-   Memcheck:Cond
-   src:snova_opt_q.c:1148
-}
-
-{
-   Rejection sampling when no valid solution was found, Odd q
-   Memcheck:Cond
-   src:snova_opt_q.c:1203
-}
-
-# Odd q, l=2
-
-{
-   Rejection sampling of secret key
-   Memcheck:Value8
-   src:snova_opt_q2.c:444
-}
-
-{
-   Rejection sampling of secret key
-   Memcheck:Cond
-   src:snova_opt_q2.c:437
-}
-
-{
-   Rejection sampling when no valid solution was found, Odd q
-   Memcheck:Cond
-   src:snova_opt_q2.c:1036
-}
-
-{
-   Rejection sampling when no valid solution was found, Odd q
-   Memcheck:Cond
-   src:snova_opt_q2.c:1091
+   src:sign.c:75
 }
 
 # q=16
 
 {
-   Rejection sampling when no valid solution was found, Optimized q=16
+   Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_opt_16.c:1004
+   src:snova_opt_16.c:1292
 }
 
 {
-   Rejection sampling when no valid solution was found, Optimized q=16
+   Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_opt_16.c:1036
-}
-
-# AVX2, q=16
-
-{
-   Rejection sampling when no valid solution was found
-   Memcheck:Cond
-   src:snova_avx2_16.c:1529
-}
-
-{
-   Lookup depending on public information
-   Memcheck:Value8
-   ...
-   fun:calc_LR_J_vtl
-}
-
-{
-   Lookup depending on public information
-   Memcheck:Value8
-   ...
-   fun:sign_digest_core_gnl_vtl
-}
-
-# AVX2, Rectangular
-
-{
-   Rejection sampling of secret key
-   Memcheck:Value8
-   src:snova_rect_q.c:452
-}
-
-{
-   Rejection sampling of secret key
-   Memcheck:Cond
-   src:snova_rect_q.c:445
-}
-
-{
-   Rejection sampling when no valid solution was found, Odd q
-   Memcheck:Cond
-   src:snova_rect_q.c:1076
-}
-
-# q=16, Rectangular
-
-{
-   Rejection sampling when no valid solution was found, q=16, no GFNI
-   Memcheck:Cond
-   src:snova_rect_16.c:1026
-}
-
-
-# Only dependent on Public key
-
-{
-   ABQ expansion, used only for A and B
-   Memcheck:Cond
-   fun:be_invertible_by_add_aS
-}
-
-{
-   Public ABQ expansion
-   Memcheck:Value8
-   ...
-   fun:gen_ABQ
-}
-
-{
-   Public ABQ expansion
-   Memcheck:Cond
-   ...
-   fun:gen_ABQ
-}
-
-# Verification functions
-{
-   Public function pk_expand
-   Memcheck:Value8
-   ...
-   fun:_snova_*pk_expand
-}
-
-{
-   Public function pk_expand
-   Memcheck:Cond
-   ...
-   fun:_snova_*pk_expand
-}
-
-{
-   Public function verify
-   Memcheck:Cond
-   fun:_snova_*verify
+   src:snova_opt_16.c:1324
 }
 
 # q=16, l=2
 
 {
-   Public function verify
-   Memcheck:Value8
-   ...
-   fun:verify_signture_pkx_vtl
-}
-
-{
-   Public function verify
+   Rejection sampling when no valid solution was found
    Memcheck:Cond
-   ...
-   fun:verify_signture_pkx_vtl
+   src:snova_opt_16_2.c:1375
 }
 
 {
-   Public function verify
-   Memcheck:Value8
-   ...
-   fun:verify_signture_vtl_core
-}
-
-{
-   Public function verify
+   Rejection sampling when no valid solution was found
    Memcheck:Cond
-   ...
-   fun:verify_signture_vtl_core
+   src:snova_opt_16_2.c:1407
 }
 
-# Test tools
+# q=16, AVX2
 
 {
-   Condition depends on the function return value
+   Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:sign.c:56
+   src:snova_avx2_16.c:6668
 }
 
 {
-   Verify function
-   Memcheck:Value8
-   ...
-   fun:crypto_sign_open
-}
-
-{
-   Verify function
+   Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   ...
-   fun:crypto_sign_open
+   src:snova_avx2_16.c:6724
 }
 
 {
-   Print public KAT file
-   Memcheck:Value8
-   ...
-   fun:fprintBstr
-}
-
-{
-   Test tool
+   Obscure error message on a fixed for loop
    Memcheck:Cond
-   fun:main
+   src:snova_avx2_16.c:4036
 }
 
+# q=16, memopt
+
 {
-   Print public KAT file
+   Rejection sampling when no valid solution was found
+   Memcheck:Cond
+   src:snova_memopt_16.c:840
+}
+
+# Test tool
+{
+   PQCgenKAT_sign KAT output
    Memcheck:Cond
    ...
    fun:fprintBstr
 }
 
 {
-   Check the public KAT result
+   PQCgenKAT_sign KAT output
+   Memcheck:Value8
+   ...
+   fun:fprintBstr
+}
+
+{
+   speed test output
+   Memcheck:Cond
+   ...
+   fun:print_number
+}
+
+{
+   speed test output
+   Memcheck:Cond
+   src:printf_chk.c:33
+}
+
+{
+   speed test output
+   Memcheck:Value8
+   ...
+   fun:print_number
+}
+
+
+{
+   PQCgenKAT_sign condition depends on the sign return value
    Memcheck:Cond
    src:PQCgenKAT_sign.c:139
 }

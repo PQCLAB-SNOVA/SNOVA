@@ -1,0 +1,17 @@
+commons:
+  - name: snova_avx2_16
+    folder_name: .
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_avx2_16.c liboqs/snova_oqs.c
+    include_only: true
+  - name: snova_opt_16
+    folder_name: .
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16.c liboqs/snova_oqs.c
+    include_only: true
+  - name: snova_opt_16_2
+    folder_name: .
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_opt_16_2.c liboqs/snova_oqs.c
+    include_only: true
+  - name: snova_memopt_16
+    folder_name: .
+    sources: LICENSE src/snova.h liboqs/symmetric.h src/snova_memopt_16.c liboqs/snova_oqs.c
+    include_only: true

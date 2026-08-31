@@ -19,67 +19,93 @@
 #include "rng.h"
 #include "symmetric.h"
 
-int crypto_sign_keypair(unsigned char* pk, unsigned char* sk) {
-	uint8_t seed[SEED_LENGTH];
+int crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
+	uint8_t seed[SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE];
 
-	randombytes(seed, SEED_LENGTH);
+	randombytes(seed, SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE);
 
 #if defined(VALGRIND)
-	VALGRIND_MAKE_MEM_UNDEFINED(seed, SEED_LENGTH);
+	VALGRIND_MAKE_MEM_UNDEFINED(seed + SEED_LENGTH_PUBLIC, SEED_LENGTH_PRIVATE);
 #endif
 
 	int res = SNOVA_NAMESPACE(genkeys)(pk, sk, seed);
 
+#if defined(VALGRIND)
+	VALGRIND_MAKE_MEM_DEFINED(pk, BYTES_PK);
+#if HASH_PK
+	VALGRIND_MAKE_MEM_DEFINED(sk + SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE, BYTES_PK_HASH);
+#endif
+#endif
+
 	return res;
 }
 
-int crypto_sign(unsigned char* sm, unsigned long long* smlen, const unsigned char* m, unsigned long long mlen,
+int crypto_sign(unsigned char *sm, unsigned long long *smlen, const unsigned char *m, unsigned long long mlen,
                 const unsigned char *sk) {
-	uint8_t digest[BYTES_DIGEST];
-	uint8_t salt[BYTES_SALT];
-	expanded_SK skx_d;
+	int res;
 
-	int res = SNOVA_NAMESPACE(sk_expand)(&skx_d, sk);
+#if SNOVA_OPT == 5
+	expanded_SK *pskx = (expanded_SK *)sk;
+#else
+	expanded_SK skx_d;
+	expanded_SK *pskx = &skx_d;
+	res = SNOVA_NAMESPACE(sk_expand)(pskx, sk);
 	if (res) {
 		return res;
 	}
+#endif
 
+	uint8_t salt[BYTES_SALT];
 	randombytes(salt, BYTES_SALT);
 
 #if defined(VALGRIND)
 	VALGRIND_MAKE_MEM_UNDEFINED(salt, BYTES_SALT);
 #endif
 
+	uint8_t digest[BYTES_DIGEST];
 	shake256(digest, BYTES_DIGEST, m, mlen);
 
-	res = SNOVA_NAMESPACE(sign)(&skx_d, sm, digest, BYTES_DIGEST, salt);
+	uint8_t sig[CRYPTO_BYTES];
+	res = SNOVA_NAMESPACE(sign)(pskx, sig, digest, BYTES_DIGEST, salt);
+
+#if defined(VALGRIND)
+	VALGRIND_MAKE_MEM_DEFINED(sig, CRYPTO_BYTES);
+#endif
+
 	if (!res) {
-		memcpy(sm + CRYPTO_BYTES, m, mlen);
+		memmove(sm + CRYPTO_BYTES, m, mlen);
+		memcpy(sm, sig, CRYPTO_BYTES);
 		*smlen = mlen + CRYPTO_BYTES;
 	}
 
 	return res;
 }
 
-int crypto_sign_open(unsigned char* m, unsigned long long* mlen, const unsigned char* sm, unsigned long long smlen,
+int crypto_sign_open(unsigned char *m, unsigned long long *mlen, const unsigned char *sm, unsigned long long smlen,
                      const unsigned char *pk) {
-	uint8_t digest[BYTES_DIGEST];
-	expanded_PK pkx;
-
 	if (smlen < CRYPTO_BYTES) {
 		return -1;
 	}
 
-	int res = SNOVA_NAMESPACE(pk_expand)(&pkx, pk);
+	int res;
+
+#if SNOVA_OPT == 5
+	expanded_PK *ppkx = (expanded_PK *)pk;
+#else
+	expanded_PK pkx;
+	expanded_PK *ppkx = &pkx;
+	res = SNOVA_NAMESPACE(pk_expand)(ppkx, pk);
 	if (res) {
 		return -1;
 	}
+#endif
 
+	uint8_t digest[BYTES_DIGEST];
 	shake256(digest, BYTES_DIGEST, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
 
-	res = SNOVA_NAMESPACE(verify)(&pkx, sm, digest, BYTES_DIGEST);
+	res = SNOVA_NAMESPACE(verify)(ppkx, sm, digest, BYTES_DIGEST);
 	if (!res) {
-		memcpy(m, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
+		memmove(m, sm + CRYPTO_BYTES, smlen - CRYPTO_BYTES);
 		*mlen = smlen - CRYPTO_BYTES;
 	} else {
 		return -1;

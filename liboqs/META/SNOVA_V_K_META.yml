@@ -1,0 +1,76 @@
+name: SNOVA_V_K
+type: signature
+claimed-nist-level: 5
+length-public-key: 1216
+length-secret-key: 96
+length-signature: 896
+nistkat-sha256: c950111bf45fff0d6d23ad737ac37f5bf67e4dd0557153d677c4941a4a337566
+principal-submitters:
+  - Lih-Chung Wang
+  - Chun-Yen Chou
+  - Jintai Ding
+  - Hao Guo
+  - Yen-Liang Kuan
+  - Jan Adriaan Leegwater
+  - Ming-Siou Li
+  - Peigen Li
+  - Bo-Shu Tseng
+  - Po-En Tseng
+  - Chia-Chun Wang
+implementations:
+  - name: opt
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=10 -DSNOVA_NAME=SNOVA_V_K -DSNOVA_v=40 -DSNOVA_o=4 -DSNOVA_q=16 -DSNOVA_l=5 -DSNOVA_r=8
+    signature_keypair: _SNOVA_V_K_opt_oqs_keypair
+    signature_signature: _SNOVA_V_K_opt_oqs_sign
+    signature_verify: _SNOVA_V_K_opt_oqs_verify
+    sources: LICENSE
+    common_dep: snova_opt_16
+    large-stack-usage: true
+    supported-platforms: all
+  - name: avx2
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=20 -DSNOVA_NAME=SNOVA_V_K -DSNOVA_v=40 -DSNOVA_o=4 -DSNOVA_q=16 -DSNOVA_l=5 -DSNOVA_r=8
+    signature_keypair: _SNOVA_V_K_avx2_oqs_keypair
+    signature_signature: _SNOVA_V_K_avx2_oqs_sign
+    signature_verify: _SNOVA_V_K_avx2_oqs_verify
+    common_dep: snova_avx2_16
+    sources: LICENSE
+    large-stack-usage: true
+    supported_platforms:
+      - architecture: x86_64
+        operating_systems:
+          - Linux
+        required_flags:
+          - avx2
+  - name: neon
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=11 -DSNOVA_NAME=SNOVA_V_K -DSNOVA_v=40 -DSNOVA_o=4 -DSNOVA_q=16 -DSNOVA_l=5 -DSNOVA_r=8
+    signature_keypair: _SNOVA_V_K_neon_oqs_keypair
+    signature_signature: _SNOVA_V_K_neon_oqs_sign
+    signature_verify: _SNOVA_V_K_neon_oqs_verify
+    sources: LICENSE
+    common_dep: snova_opt_16
+    large-stack-usage: true
+    supported_platforms:
+      - architecture: arm_8
+        operating_systems:
+          - Darwin
+          - Linux
+        required_flags:
+          - asimd
+  - name: memopt
+    version: 3.0
+    folder_name: .
+    compile_opts: -DSNOVA_OPT=5 -DSNOVA_NAME=SNOVA_V_K -DSNOVA_v=40 -DSNOVA_o=4 -DSNOVA_q=16 -DSNOVA_l=5 -DSNOVA_r=8
+    signature_keypair: _SNOVA_V_K_memopt_oqs_keypair
+    signature_signature: _SNOVA_V_K_memopt_oqs_sign
+    signature_verify: _SNOVA_V_K_memopt_oqs_verify
+    sources: src/abq_snova_v_k.h
+    common_dep: snova_memopt_16
+    large-stack-usage: false
+    memory_optimized: true
+    supported-platforms: all

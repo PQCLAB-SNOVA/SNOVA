@@ -6,7 +6,7 @@
  * Contains a SHAKE implementation and Vectorized SNOVA-SHAKE XOF.
  * The optimized implementation of snova_pk_expander can be tested against the reference version by generating the KAT files.
  *
- * Copyright (c) 2025 SNOVA TEAM
+ * Copyright (c) 2026 SNOVA TEAM
  */
 
 #include "symmetric.h"
@@ -16,77 +16,31 @@
 
 #include "snova.h"
 
-#ifdef USE_OPENSSL
-
-#include <openssl/err.h>
-#include <openssl/evp.h>
-
-void shake128_init(shake_t* instance) {
-	*(EVP_MD_CTX**)instance = EVP_MD_CTX_new();
-	EVP_DigestInit_ex(*(EVP_MD_CTX**)instance, EVP_shake128(), NULL);
-}
-
-void shake256_init(shake_t* instance) {
-	*(EVP_MD_CTX**)instance = EVP_MD_CTX_new();
-	EVP_DigestInit_ex(*(EVP_MD_CTX**)instance, EVP_shake256(), NULL);
-}
-
-void shake_absorb(shake_t* instance, const uint8_t* in, size_t inlen) {
-	EVP_DigestUpdate(*(EVP_MD_CTX**)instance, in, inlen);
-}
-
-void shake_finalize(shake_t* instance) {
-	(void)instance;
-}
-
-void shake_squeeze(uint8_t* out, size_t outlen, shake_t* instance) {
-	EVP_DigestFinalXOF(*(EVP_MD_CTX**)instance, out, outlen);
-}
-
-void shake_squeeze_keep(uint8_t* out, size_t outlen, shake_t* instance) {
-	EVP_DigestSqueeze(*(EVP_MD_CTX**)instance, out, outlen);
-}
-
-void shake_release(shake_t* instance) {
-	EVP_MD_CTX_free(*(EVP_MD_CTX**)instance);
-}
-
-#else
-
 #include "keccak_opt64.h"
 
-void shake128_init(shake_t* instance) {
+void shake128_init(shake_t *instance) {
 	memset(instance, 0, sizeof(shake_t));
 	instance->state[26] = 168;
 }
 
-void shake256_init(shake_t* instance) {
+void shake256_init(shake_t *instance) {
 	memset(instance, 0, sizeof(shake_t));
 	instance->state[26] = 136;
 }
 
-void shake_absorb(shake_t* instance, const uint8_t* in, size_t inlen) {
+void shake_absorb(shake_t *instance, const uint8_t *in, size_t inlen) {
 	keccak_inc_absorb(instance->state, instance->state[26], in, inlen);
 }
 
-void shake_finalize(shake_t* instance) {
+void shake_finalize(shake_t *instance) {
 	keccak_inc_finalize(instance->state, instance->state[26], 0x1F);
 }
 
-void shake_squeeze(uint8_t* out, size_t outlen, shake_t* instance) {
+void shake_squeeze(uint8_t *out, size_t outlen, shake_t *instance) {
 	keccak_inc_squeeze(out, outlen, instance->state, instance->state[26]);
 }
 
-void shake_squeeze_keep(uint8_t* out, size_t outlen, shake_t* instance) {
-	keccak_inc_squeeze(out, outlen, instance->state, instance->state[26]);
-}
-
-void shake_release(shake_t* instance) {
-	(void)instance;
-}
-#endif
-
-void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
+void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
 	shake_t instance;
 	shake256_init(&instance);
 	shake_absorb(&instance, in, inlen);
@@ -97,28 +51,106 @@ void shake256(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
 /**
  * SNOVA public key expander
  */
-typedef struct {
-#if __AVX512F__
-	uint64_t state[406];
-#elif __AVX2__
-	uint64_t state[206];
-#else
-	uint64_t state[56];
-#endif
-} snova_pk_expander_t;
 
 #if defined(AESCTR)
 
-void snova_pk_expander_init(snova_pk_expander_t* instance, const uint8_t* seed, size_t input_bytes) {
-	(void)input_bytes;
-	memcpy(instance, seed, 16);
+void AES128_ECB(const unsigned char *key, const uint8_t *input, unsigned char *output, size_t num);
+int AES128_CTR(unsigned char *output, size_t outputByteLen, const unsigned char *input, size_t inputByteLen);
+
+void snova_pk_expand(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
+	AES128_CTR(out, outlen, in, inlen);
 }
 
-#define AES128_CTR SNOVA_NAMESPACE(AES128_CTR)
-int AES128_CTR(unsigned char* output, size_t outputByteLen, const unsigned char* input, size_t inputByteLen);
+#define NUM_BYTES (12 * 16)
+typedef struct {
+	uint8_t key[16];
+	uint8_t states[2 * NUM_BYTES];
+	uint32_t block_i;
 
-void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* instance) {
-	AES128_CTR(data, num_bytes, (uint8_t*)instance, 16);
+	uint32_t index;
+	uint32_t last_idx;
+	int32_t bytes_left;
+} snova_aes_impl_t;
+
+_Static_assert(sizeof(snova_aes_impl_t) <= sizeof(snova_pk_expander_t), "snova_aes_impl_t size error");
+
+void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_t input_bytes) {
+	snova_aes_impl_t *instance = (snova_aes_impl_t *)arg;
+
+	(void)input_bytes;
+	memset(instance, 0, sizeof(snova_aes_impl_t));
+	memcpy(instance->key, seed, 16);
+}
+
+static inline void snova_aes_expander_block(snova_aes_impl_t *instance) {
+	uint8_t in[NUM_BYTES] = {0};
+	uint8_t out[NUM_BYTES] = {0};
+
+	for (int i = 0; i < NUM_BYTES / 16; i++) {
+		for (int j = 0; j < 8; j++) {
+			in[i * 16 + 15 - j] = (instance->block_i >> (8 * j)) & 0xff;
+		}
+		instance->block_i++;
+	}
+
+	AES128_ECB(instance->key, in, out, NUM_BYTES);
+
+	// Convert to GF16
+	for (int32_t idx = NUM_BYTES - 1; idx >= 0; idx--) {
+		instance->states[2 * idx + 1] = (out[idx] >> 4) & 0xf;
+		instance->states[2 * idx] = out[idx] & 0xf;
+	}
+}
+
+void snova_pk_expander_squeeze(uint8_t *data, size_t num_gf, snova_pk_expander_t *arg) {
+	snova_aes_impl_t *instance = (snova_aes_impl_t *)arg;
+	uint8_t *data8 = data;
+	instance->last_idx += num_gf;
+
+	if (instance->bytes_left > 0) {
+		uint8_t *state8 = (uint8_t *)instance->states + 2 * NUM_BYTES - instance->bytes_left;
+
+		if (instance->bytes_left >= (int64_t)num_gf) {
+			memcpy(data, state8, num_gf);
+			instance->bytes_left -= num_gf;
+			instance->index += num_gf;
+			return;
+		}
+
+		memcpy(data8, state8, instance->bytes_left);
+		instance->index += instance->bytes_left;
+		data8 += instance->bytes_left;
+	}
+
+	while (instance->index < instance->last_idx) {
+		snova_aes_expander_block(instance);
+
+		size_t bytes = instance->last_idx - instance->index;
+		if (bytes > 2 * NUM_BYTES) {
+			bytes = 2 * NUM_BYTES;
+		} else {
+			instance->bytes_left = 2 * NUM_BYTES - bytes;
+		}
+
+		memcpy(data8, instance->states, bytes);
+		instance->index += bytes;
+		data8 += bytes;
+	}
+}
+
+void snova_pk_expander_goto(snova_pk_expander_t *arg, size_t index) {
+	snova_aes_impl_t *instance = (snova_aes_impl_t *)arg;
+
+	instance->block_i = index / 32;
+	snova_aes_expander_block(instance);
+
+	instance->last_idx = index;
+	instance->bytes_left = 2 * NUM_BYTES - (index % 32);
+	instance->index = index;
+}
+
+void snova_pk_expander_free(snova_pk_expander_t *arg) {
+	(void)arg;
 }
 
 #else
@@ -135,55 +167,169 @@ void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* ins
 #include "keccak_opt64.h"
 #endif
 
-typedef struct {
+void snova_pk_expand(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen) {
 	uint64_t prepared_state[25 * PARALLELISM];
-	uint64_t states[25 * PARALLELISM];
+	uint64_t states[50 * PARALLELISM];
 	uint64_t rate;
 	uint64_t block;
 	uint64_t index;
 	uint64_t input_bytes;
 	uint64_t last_idx;
-	int64_t bytes_left;
+
+	uint64_t keccak_instance[25] = {0};
+	uint8_t *prepared_state8 = (uint8_t *)prepared_state;
+
+	block = 0;
+	index = 0;
+	last_idx = 0;
+	input_bytes = inlen;
+	rate = 168;
+
+	// Align to uint64_t
+	memcpy(&keccak_instance[0], in, inlen);
+
+	for (int idx = 0; idx < PARALLELISM; idx++) {
+		for (int idx2 = 0; idx2 < 25; idx2++) {
+			prepared_state[idx + idx2 * PARALLELISM] = keccak_instance[idx2];
+		}
+		// SHAKE padding. Use the (uint8_t *)prepared_state8 here
+		prepared_state8[idx * 8 + (inlen + 8) * PARALLELISM] ^= 0x1F;
+		prepared_state8[idx * 8 + (rate - 8) * PARALLELISM + 7] ^= 0x80;
+	}
+
+	uint8_t *data8 = out;
+	last_idx += outlen;
+
+	alignas(PARALLELISM * 8) uint64_t buffer[25 * PARALLELISM];
+	while (index < last_idx) {
+		memcpy(buffer, prepared_state, PARALLELISM * 200);
+		for (int idx = 0; idx < PARALLELISM; idx++) {
+#if PARALLELISM == 1
+			uint8_t *states8 = (uint8_t *)buffer;
+			for (int iend = 0; iend < 8; iend++) {
+				uint8_t block_i = (block >> (8 * iend)) & 0xff;
+				states8[input_bytes * PARALLELISM + idx * 8 + iend] ^= block_i;
+			}
+#else
+			buffer[input_bytes * PARALLELISM / 8 + idx] ^= block;
+#endif
+			block++;
+		}
+
+#if PARALLELISM == 1
+		KeccakF1600_StatePermute((void *)buffer);
+#elif PARALLELISM == 4
+		KeccakP1600times4_PermuteAll_24rounds((void *)buffer);
+#elif PARALLELISM == 8
+		KeccakP1600times8_PermuteAll_24rounds((void *)buffer);
+#endif
+
+		for (size_t idx = 0; idx < PARALLELISM; idx++) {
+			for (size_t idx2 = 0; idx2 < (rate / 8); idx2++) {
+				states[idx * (rate / 8) + idx2] = buffer[idx + PARALLELISM * idx2];
+			}
+		}
+
+		size_t bytes = last_idx - index;
+		if (bytes > rate * PARALLELISM) {
+			bytes = rate * PARALLELISM;
+		}
+
+		memcpy(data8, states, bytes);
+		index += bytes;
+		data8 += bytes;
+	}
+}
+
+#define STREAM_PAR 1
+
+typedef struct {
+	uint64_t states[50 * STREAM_PAR];
+	uint8_t seed[SEED_LENGTH_PUBLIC];
+	uint32_t block;
+	uint32_t index;
+	uint32_t last_idx;
+	int32_t bytes_left;
 } snova_pkx_impl_t;
 
-void snova_pk_expander_init(snova_pk_expander_t* arg, const uint8_t* seed, size_t input_bytes) {
-	snova_pkx_impl_t *instance = (snova_pkx_impl_t*)arg;
-	uint64_t keccak_instance[25] = {0};
-	uint8_t *prepared_state8 = (uint8_t*)instance->prepared_state;
+_Static_assert(sizeof(snova_pkx_impl_t) == sizeof(snova_pk_expander_t), "snova_pk_expander_t size error");
+
+void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_t input_bytes) {
+	snova_pkx_impl_t *instance = (snova_pkx_impl_t *)arg;
 
 	instance->block = 0;
 	instance->index = 0;
 	instance->last_idx = 0;
-	instance->input_bytes = input_bytes;
 	instance->bytes_left = 0;
-	instance->rate = 168;
+	(void)input_bytes;
+
+	memcpy(instance->seed, seed, SEED_LENGTH_PUBLIC);
+}
+
+static inline void snova_pk_expand_gf_block(snova_pkx_impl_t *instance) {
+	alignas(STREAM_PAR * 8) uint64_t buffer[25 * STREAM_PAR];
 
 	// Align to uint64_t
-	memcpy(&keccak_instance[0], seed, input_bytes);
+	uint8_t *prepared_state8 = (uint8_t *)buffer;
+	uint64_t keccak_instance[25] = {0};
+	memcpy(&keccak_instance[0], instance->seed, SEED_LENGTH_PUBLIC);
 
-	for (int idx = 0; idx < PARALLELISM; idx++) {
+	for (int idx = 0; idx < STREAM_PAR; idx++) {
 		for (int idx2 = 0; idx2 < 25; idx2++) {
-			instance->prepared_state[idx + idx2 * PARALLELISM] = keccak_instance[idx2];
+			buffer[idx + idx2 * STREAM_PAR] = keccak_instance[idx2];
 		}
 		// SHAKE padding. Use the (uint8_t *)prepared_state8 here
-		prepared_state8[idx * 8 + (input_bytes + 8) * PARALLELISM] ^= 0x1F;
-		prepared_state8[idx * 8 + (instance->rate - 8) * PARALLELISM + 7] ^= 0x80;
+		prepared_state8[idx * 8 + (SEED_LENGTH_PUBLIC + 8) * STREAM_PAR] ^= 0x1F;
+		prepared_state8[idx * 8 + (168 - 8) * STREAM_PAR + 7] ^= 0x80;
+	}
+
+	for (int idx = 0; idx < STREAM_PAR; idx++) {
+#if STREAM_PAR == 1
+		uint8_t *states8 = (uint8_t *)buffer;
+		for (int iend = 0; iend < 8; iend++) {
+			uint8_t block_i = (instance->block >> (8 * iend)) & 0xff;
+			states8[SEED_LENGTH_PUBLIC * STREAM_PAR + idx * 8 + iend] ^= block_i;
+		}
+#else
+		buffer[SEED_LENGTH_PUBLIC * STREAM_PAR / 8 + idx] ^= instance->block;
+#endif
+		instance->block++;
+	}
+
+#if STREAM_PAR == 1
+	KeccakF1600_StatePermute((void *)buffer);
+#elif STREAM_PAR == 4
+	KeccakP1600times4_PermuteAll_24rounds((void *)buffer);
+#elif STREAM_PAR == 8
+	KeccakP1600times8_PermuteAll_24rounds((void *)buffer);
+#endif
+
+	for (size_t idx = 0; idx < STREAM_PAR; idx++) {
+		for (size_t idx2 = 0; idx2 < (168 / 8); idx2++) {
+			instance->states[idx * (168 / 8) + idx2] = buffer[idx + STREAM_PAR * idx2];
+		}
+	}
+
+	// Convert to GF16
+	uint8_t *state8 = (uint8_t *)instance->states;
+	for (int32_t idx = STREAM_PAR * 168 - 1; idx >= 0; idx--) {
+		state8[2 * idx + 1] = (state8[idx] >> 4) & 0xf;
+		state8[2 * idx] = state8[idx] & 0xf;
 	}
 }
 
-void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* arg) {
-	snova_pkx_impl_t *instance = (snova_pkx_impl_t*)arg;
+void snova_pk_expander_squeeze(uint8_t *data, size_t num_gf, snova_pk_expander_t *arg) {
+	snova_pkx_impl_t *instance = (snova_pkx_impl_t *)arg;
 	uint8_t *data8 = data;
-	instance->last_idx += num_bytes;
+	instance->last_idx += num_gf;
 
 	if (instance->bytes_left > 0) {
-		uint8_t *state8 = (uint8_t*)instance->states;
-		state8 += instance->rate * PARALLELISM - instance->bytes_left;
+		uint8_t *state8 = (uint8_t *)instance->states + 2 * 168 * STREAM_PAR - instance->bytes_left;
 
-		if (instance->bytes_left > (int64_t)num_bytes) {
-			memcpy(data, state8, num_bytes);
-			instance->bytes_left -= num_bytes;
-			instance->index += num_bytes;
+		if (instance->bytes_left >= (int64_t)num_gf) {
+			memcpy(data, state8, num_gf);
+			instance->bytes_left -= num_gf;
+			instance->index += num_gf;
 			return;
 		}
 
@@ -192,41 +338,14 @@ void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* arg
 		data8 += instance->bytes_left;
 	}
 
-	alignas(PARALLELISM * 8) uint64_t buffer[25 * PARALLELISM];
 	while (instance->index < instance->last_idx) {
-		memcpy(buffer, instance->prepared_state, PARALLELISM * 200);
-		for (int idx = 0; idx < PARALLELISM; idx++) {
-#if PARALLELISM == 1
-			uint8_t *states8 = (uint8_t*)buffer;
-			for (int iend = 0; iend < 8; iend++) {
-				uint8_t block_i = (instance->block >> (8 * iend)) & 0xff;
-				states8[instance->input_bytes * PARALLELISM + idx * 8 + iend] ^= block_i;
-			}
-#else
-			buffer[instance->input_bytes * PARALLELISM / 8 + idx] ^= instance->block;
-#endif
-			instance->block++;
-		}
-
-#if PARALLELISM == 1
-		KeccakF1600_StatePermute((void*)buffer);
-#elif PARALLELISM == 4
-		KeccakP1600times4_PermuteAll_24rounds((void*)buffer);
-#elif PARALLELISM == 8
-		KeccakP1600times8_PermuteAll_24rounds((void*)buffer);
-#endif
-
-		for (size_t idx = 0; idx < PARALLELISM; idx++) {
-			for (size_t idx2 = 0; idx2 < (instance->rate / 8); idx2++) {
-				instance->states[idx * (instance->rate / 8) + idx2] = buffer[idx + PARALLELISM * idx2];
-			}
-		}
+		snova_pk_expand_gf_block(instance);
 
 		size_t bytes = instance->last_idx - instance->index;
-		if (bytes > instance->rate * PARALLELISM) {
-			bytes = instance->rate * PARALLELISM;
+		if (bytes > 2 * 168 * STREAM_PAR) {
+			bytes = 2 * 168 * STREAM_PAR;
 		} else {
-			instance->bytes_left = instance->rate * PARALLELISM - bytes;
+			instance->bytes_left = 2 * 168 * STREAM_PAR - bytes;
 		}
 
 		memcpy(data8, instance->states, bytes);
@@ -234,10 +353,19 @@ void snova_pk_expander(uint8_t* data, size_t num_bytes, snova_pk_expander_t* arg
 		data8 += bytes;
 	}
 }
-#endif
 
-void snova_pk_expand(uint8_t* out, size_t outlen, const uint8_t* in, size_t inlen) {
-	snova_pk_expander_t instance;
-	snova_pk_expander_init(&instance, in, inlen);
-	snova_pk_expander(out, outlen, &instance);
+void snova_pk_expander_goto(snova_pk_expander_t *arg, size_t index) {
+	snova_pkx_impl_t *instance = (snova_pkx_impl_t *)arg;
+
+	instance->block = index / (2 * 168);
+	snova_pk_expand_gf_block(instance);
+
+	instance->last_idx = index;
+	instance->bytes_left = 2 * STREAM_PAR * 168 - (index % (2 * 168));
+	instance->index = index;
 }
+
+void snova_pk_expander_free(snova_pk_expander_t *instance) {
+	(void)instance;
+}
+#endif
