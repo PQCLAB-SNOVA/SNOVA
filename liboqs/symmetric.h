@@ -63,6 +63,7 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *inpu
 	void *state;
 
 	assert(inlen == 16);
+	(void)inlen;
 
 	OQS_AES128_CTR_inc_init(input, &state);
 	OQS_AES128_CTR_inc_stream_iv(iv, 12, state, data, num_bytes);
@@ -85,6 +86,7 @@ typedef struct {
 static void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_t input_bytes) {
 	snova_pk_expander_t *instance = (snova_pk_expander_t *)arg;
 	assert(input_bytes == SEED_LENGTH_PUBLIC);
+	(void)input_bytes;
 
 	memset(instance, 0, sizeof(snova_pk_expander_t));
 	memcpy(instance->key, seed, 16);
@@ -173,6 +175,7 @@ static void snova_pk_expander_free(snova_pk_expander_t *arg) {
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *pt_seed_array, size_t inlen) {
 	assert(inlen == SEED_LENGTH_PUBLIC);
+	(void)inlen;
 
 	size_t index = 0;
 	uint64_t block = 0;
@@ -215,6 +218,7 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *pt_s
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *in, size_t inlen) {
 	assert(inlen == SEED_LENGTH_PUBLIC);
+	(void)inlen;
 
 	size_t index = 0;
 	uint64_t block = 0;
@@ -259,6 +263,7 @@ typedef struct {
 
 static void snova_pk_expander_init(snova_pk_expander_t *instance, const uint8_t *seed, size_t input_bytes) {
 	assert(input_bytes == SEED_LENGTH_PUBLIC);
+	(void)input_bytes;
 
 	instance->block = 0;
 	instance->index = 0;
