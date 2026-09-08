@@ -299,6 +299,7 @@ static gf16_t det_cofactor(const gf16_t *M, int n) {
 
 // #include "xgf16.h"
 
+#if 0
 static uint8_t gf16_mul_tab[256];
 
 static inline gf16_t det_gauss_mul(gf16_t a, gf16_t b) {
@@ -312,7 +313,6 @@ static const gf16_t gf16_inv_tab[16] = {
 static inline gf16_t det_gauss_inv(gf16_t a) {
 	return gf16_inv_tab[a & 0x0F];
 }
-
 __attribute__((unused))
 static gf16_t det_gauss(const gf16_t *M, int n) {
 	gf16_t a[SNOVA_SQ_RANK];
@@ -350,10 +350,10 @@ static gf16_t det_gauss(const gf16_t *M, int n) {
 	}
 	return det;
 }
-
+#endif
 // #include "xgf16.h"
 
-#if SNOVA_RANK >= 2 && SNOVA_RANK <= 4
+#if SNOVA_RANK >= 2 && SNOVA_RANK <= 4 && 0
 static inline gf16_t gf16_mul_inline(gf16_t a, gf16_t b) {
 	return gf16_mul_tab[((a & 0xF) << 4) | (b & 0xF)];
 }
@@ -383,7 +383,7 @@ static inline gf16_t det_inline(const gf16m_t a) {
     gf16_mul_inline(GF16M_AT(a, i0, j0), \
         gf16_add(gf16_mul_inline(GF16M_AT(a, i1, j1), GF16M_AT(a, i2, j2)), \
                  gf16_mul_inline(GF16M_AT(a, i3, j3), GF16M_AT(a, i4, j4))))
-
+#if 0
 static inline gf16_t det_inline(const gf16m_t a) {
 	gf16_t d0 = gf16_mul_inline(GF16M_AT(a, 0, 0),
 	                            gf16_add(gf16_add(POD4(a, 1, 1, 2, 2, 3, 3, 2, 3, 3, 2),
@@ -439,13 +439,14 @@ static inline gf16_t det_inline(const gf16m_t a) {
 	           gf16_add(d134, d234));
 }
 #endif
+#endif
 
 /**
  * @file gf16_core/gf16_qrp16.h
  */
 #ifndef SNOVA_GF16_QRP16_H
 #define SNOVA_GF16_QRP16_H
-
+#if 0
 static inline uint64_t gf16_u64_mul(uint64_t a, uint64_t b) {
 	uint64_t t = 0, mask;
 	for (int i = 0; i < 4; i++) {
@@ -457,10 +458,11 @@ static inline uint64_t gf16_u64_mul(uint64_t a, uint64_t b) {
 	}
 	return t;
 }
-
+#endif
 #if defined(__AVX2__)
 #include <immintrin.h>
 
+#if 0
 static inline __m256i gf16_qrp16_256_mul_(__m256i a, __m256i b, __m256i unit) {
 	__m256i t = _mm256_setzero_si256();
 	for (int i = 0; i < 4; i++) {
@@ -496,13 +498,13 @@ static inline __m128i gf16_qrp16_256_nib_outer4_pack(
 	return _mm_xor_si128(_mm256_castsi256_si128(P),
 	                     _mm256_extracti128_si256(P, 1));
 }
-
 static inline __m128i gf16_nibpack_fold128(__m128i t) {
 	const __m128i m = _mm_set1_epi8(0x0f);
 	return _mm_xor_si128(_mm_and_si128(t, m),
 	                     _mm_and_si128(_mm_srli_epi16(t, 4), m));
 }
-
+#endif
+#if !USE_GFNI
 static inline __m256i gf16_qrp16_256_byte_mul(__m256i a, __m256i b) {
 	const __m256i unit = _mm256_set1_epi8(0x01);
 	const __m256i zero = _mm256_setzero_si256();
@@ -520,7 +522,9 @@ static inline __m256i gf16_qrp16_256_byte_mul(__m256i a, __m256i b) {
 	}
 	return t;
 }
-
+#endif
+#if SNOVA_l == 4
+#if 0
 static inline __m128i gf16_qrp16_128_mul_(__m128i a, __m128i b, __m128i unit) {
 	__m128i t = _mm_setzero_si128();
 	for (int i = 0; i < 4; i++) {
@@ -538,7 +542,8 @@ static inline __m128i gf16_qrp16_128_mul_(__m128i a, __m128i b, __m128i unit) {
 	}
 	return t;
 }
-
+#endif
+#if !USE_GFNI
 static inline __m128i gf16_qrp16_128_byte_mul(__m128i a, __m128i b) {
 	const __m128i unit = _mm_set1_epi8(0x01);
 	const __m128i zero = _mm_setzero_si128();
@@ -556,6 +561,8 @@ static inline __m128i gf16_qrp16_128_byte_mul(__m128i a, __m128i b) {
 	}
 	return t;
 }
+#endif
+#endif
 
 #endif
 
@@ -641,10 +648,12 @@ static inline gf_t gf_inv_sec(const gf_t a) {
 static inline uint32_t ct_gf_nz(const uint32_t v) {
 	return (0u - v) >> 31;
 }
+#if 0
 static inline gf_t ct_gf_sel(const uint32_t cond, const gf_t a, const gf_t b) {
 	uint32_t m = 0u - cond;
 	return (gf_t)((a & m) | (b & ~m));
 }
+#endif
 
 #if defined(__AVX2__) && (SNOVA_Q == 16) && !defined(RCT_FORCE_SCALAR)
 #define RCT_AVX2_Q16 1
@@ -693,6 +702,7 @@ static inline gf_t ct_gf_sel(const uint32_t cond, const gf_t a, const gf_t b) {
 #ifndef RCT_SIGN_ENGINE_H
 #define RCT_SIGN_ENGINE_H
 #if RCT_SIGN_JOG
+#if USE_GFNI
 static inline __m128i rct_sj_cleanup128(__m128i v) {
 	const __m128i m0f = _mm_set1_epi8(0x0f);
 	__m128i vhi = _mm_and_si128(v, _mm_set1_epi8((char)0xf0));
@@ -700,6 +710,7 @@ static inline __m128i rct_sj_cleanup128(__m128i v) {
 	__m128i b = _mm_srli_epi16(v, 4);
 	return _mm_and_si128(_mm_xor_si128(_mm_xor_si128(v, a), b), m0f);
 }
+#endif
 static inline __m256i rct_sj_cleanup256(__m256i v) {
 	const __m256i m0f = _mm256_set1_epi8(0x0f);
 	__m256i vhi = _mm256_and_si256(v, _mm256_set1_epi8((char)0xf0));
@@ -772,7 +783,7 @@ static inline __m128i rct_sj_bc128_pub(gf_t s) {
 	return rct_sj_vtl[s & 0x0F];
 #endif
 }
-
+#if SNOVA_r < 8
 static inline __m256i rct_sj_bc256_pub(gf_t s) {
 	SNOVA_CT_ASSERT_PUBLIC_MEM(&s, sizeof s);
 #if RCT_HAVE_GFNI
@@ -781,7 +792,7 @@ static inline __m256i rct_sj_bc256_pub(gf_t s) {
 	return _mm256_broadcastsi128_si256(rct_sj_vtl[s & 0x0F]);
 #endif
 }
-
+#endif
 static inline void rct_sj_store_r(gf_t *dst, __m128i acc) {
 	_Alignas(16) uint8_t tmp[16];
 	_mm_store_si128((__m128i *)tmp, RCT_SJ_CLEAN(acc));
@@ -816,7 +827,7 @@ static inline void rct_sj_mm_add_pub(gf_t *C, const gf_t *A, const gf_t *B, int 
 	}
 }
 
-#if RCT_HAVE_GFNI && SNOVA_l == 5 && (SNOVA_r == 5 || SNOVA_r == 6 || SNOVA_r == 8)
+#if RCT_HAVE_GFNI && SNOVA_l == 5 && (SNOVA_r == 6 || SNOVA_r == 8)
 #define RCT_SJ_A4 1
 #if SNOVA_r == 8
 typedef struct {
@@ -861,6 +872,7 @@ typedef struct {
 typedef struct {
 	__m128i a01, a23, t;
 } rct_a4_acc_t;
+#if SNOVA_l == SNOVA_r
 static inline rct_a4_acc_t rct_a4_zero(void) {
 	rct_a4_acc_t z;
 	z.a01 = z.a23 = z.t = _mm_setzero_si128();
@@ -889,6 +901,7 @@ static inline __m128i rct_a4_fold(rct_a4_acc_t A) {
 	f = _mm_xor_si128(f, _mm_srli_si128(f, 6));
 	return _mm_xor_si128(f, A.t);
 }
+#endif
 #else
 typedef struct {
 	__m128i b012, b34;
@@ -1000,6 +1013,7 @@ static inline rct_m4_acc_t rct_m4_zero(void) {
 #endif
 	return z;
 }
+#if 0
 static inline rct_m4_bc_t rct_m4_bc(const gf_t *sc) {
 	_Alignas(16) uint16_t ev[8];
 	for (int k = 0; k < 5; ++k) {
@@ -1014,6 +1028,7 @@ static inline rct_m4_bc_t rct_m4_bc(const gf_t *sc) {
 #endif
 	return b;
 }
+#endif
 static inline void rct_m4_mac(rct_m4_acc_t *A, rct_m4_bc_t b, const gf_t *w) {
 	A->a0 = _mm256_xor_si256(A->a0, _mm256_mullo_epi16(b.b0,
 	    _mm256_cvtepu8_epi16(_mm_loadu_si128((const __m128i *)w))));
@@ -1024,6 +1039,7 @@ static inline void rct_m4_mac(rct_m4_acc_t *A, rct_m4_bc_t b, const gf_t *w) {
 	    _mm256_cvtepu8_epi16(_mm_loadu_si128((const __m128i *)&w[32]))));
 #endif
 }
+#if 0
 static inline __m128i rct_m4_fold(rct_m4_acc_t A) {
 	_Alignas(32) uint16_t tb[48];
 	_mm256_store_si256((__m256i *)tb, A.a0);
@@ -1041,6 +1057,7 @@ static inline __m128i rct_m4_fold(rct_m4_acc_t A) {
 	__m256i c = cl_gf16_compress_u16x16(_mm256_castsi128_si256(f));
 	return cl_gf16_pack_u16_to_bytes(c);
 }
+#endif
 #else
 #define RCT_SJ_M4 0
 #endif
@@ -1199,9 +1216,11 @@ static inline void rct_gauss_row_axpy_sec(gf_t *dst, const gf_t *src, gf_t s, in
 #define RCT_GF16_CELL_AVX2_H
 
 #if RCT_USE_SIMD
+#if !USE_GFNI || (SNOVA_l != SNOVA_r)
 static inline uint8_t rct_gfni_cleanup(uint8_t v) {
 	return (uint8_t)((v ^ ((v & 0xf0) >> 3) ^ (v >> 4)) & 0x0f);
 }
+#endif
 static inline __m256i rct_gfni_cleanup256(__m256i v) {
 	const __m256i m0f = _mm256_set1_epi8(0x0f);
 	__m256i vhi = _mm256_and_si256(v, _mm256_set1_epi8((char)0xf0));
@@ -1252,6 +1271,7 @@ static inline __m128i gf16_pack_u16_to_bytes(__m256i c) {
 #define RCT_GF16_MM1 _mm256_setr_epi8(2,3,2,3,2,3,2,3,10,11,10,11,10,11,10,11, 2,3,2,3,2,3,2,3,10,11,10,11,10,11,10,11)
 #define RCT_GF16_MM2 _mm256_setr_epi8(4,5,4,5,4,5,4,5,12,13,12,13,12,13,12,13, 4,5,4,5,4,5,4,5,12,13,12,13,12,13,12,13)
 #define RCT_GF16_MM3 _mm256_setr_epi8(6,7,6,7,6,7,6,7,14,15,14,15,14,15,14,15, 6,7,6,7,6,7,6,7,14,15,14,15,14,15,14,15)
+#if !USE_GFNI
 static inline void rct_gf16_cperm_exp(__m256i cw_raw, __m256i *cperm) {
 	__m256i e = gf16_expand_u16x16(cw_raw);
 	cperm[0] = _mm256_permute4x64_epi64(e, 0x00);
@@ -1282,7 +1302,7 @@ static inline __m256i rct_gf16_mm4_bs(const __m256i *bsh_exp, __m256i cw_raw) {
 	a = _mm256_xor_si256(a, _mm256_mullo_epi16(bsh_exp[3], _mm256_permute4x64_epi64(cw_raw, 0xFF)));
 	return a;
 }
-
+#endif
 #if defined(RCT_COEF_MULLO) && (RCT_COEF_MULLO + 0) \
     && (SNOVA_q == 16) && (SNOVA_r != SNOVA_l)
 #define RCT_CM_ACTIVE 1
@@ -1296,10 +1316,12 @@ static inline __m256i rct_gf16_mm4_bs(const __m256i *bsh_exp, __m256i cw_raw) {
 static inline uint16_t rct_cm_exp(uint8_t a) {
 	return (uint16_t)((a | ((uint16_t)a << 3) | ((uint16_t)a << 6) | ((uint16_t)a << 9)) & 0x1111);
 }
+#if !USE_GFNI || SNOVA_r != SNOVA_l
 static inline uint16_t rct_cm_cmp(uint16_t a) {
 	uint16_t v = (uint16_t)((a & 0xf) ^ ((a & 0xf0) >> 3) ^ ((a & 0xf00) >> 6) ^ ((a & 0xf000) >> 9));
 	return (uint16_t)((v ^ ((v & 0xf0) >> 3) ^ (v >> 4)) & 0xf);
 }
+#endif
 static inline void rct_cm_expand_arr(uint16_t *dst, const uint8_t *src, int n) {
 	int i = 0;
 	for (; i + 16 <= n; i += 16)
@@ -1376,6 +1398,7 @@ static inline __m128i rct_s2_prow(int k) {
 #define RCT_BC_SEC(s)    RCT_BC(s)
 #define RCT_BC128_SEC(s) RCT_BC128(s)
 
+#if USE_GFNI
 static inline void rct_gauss_row_axpy(gf_t *dst, const gf_t *src, gf_t s, int k0, int kend) {
 	__m256i sv = _mm256_set1_epi8((char)s);
 	for (int k = k0; k < kend; k += 32) {
@@ -1391,8 +1414,10 @@ static inline void rct_gauss_row_scale(gf_t *row, gf_t s, int k0, int kend) {
 		_mm256_storeu_si256((__m256i *)(row + k), rct_gfni_cleanup256(p));
 	}
 }
+#endif
 
 #if SNOVA_l == 4
+#if !USE_GFNI
 static inline void rct_gf4_matmul_add(gf_t *acc, const gf_t *A, const gf_t *B) {
 	static const _Alignas(16) uint8_t AMASK[4][16] = {
 		{0, 0, 0, 0, 4, 4, 4, 4, 8, 8, 8, 8, 12, 12, 12, 12},
@@ -1418,7 +1443,8 @@ static inline void rct_gf4_matmul_add(gf_t *acc, const gf_t *A, const gf_t *B) {
 	__m128i cur = _mm_loadu_si128((const __m128i *)acc);
 	_mm_storeu_si128((__m128i *)acc, _mm_xor_si128(cur, r));
 }
-
+#endif
+#if !USE_GFNI || SNOVA_r != 4
 static inline void rct_matmul_l4rows(gf_t *C, const gf_t *A, const gf_t *B, int ad, int bd) {
 	for (int i = 0; i < ad; i++) {
 		__m128i acc = _mm_setzero_si128();
@@ -1445,7 +1471,7 @@ static inline void rct_matmul_l4rows_add(gf_t *C, const gf_t *A, const gf_t *B, 
 		memcpy(&C[i * 4], &c, 4);
 	}
 }
-
+#endif
 static __m256i rct_vtl[16];
 static void rct_build_vtl(void) {
 	_Alignas(32) uint8_t buf[32];
@@ -1457,9 +1483,11 @@ static void rct_build_vtl(void) {
 		rct_vtl[k] = _mm256_loadu_si256((const __m256i *)buf);
 	}
 }
+#if SNOVA_l == SNOVA_r
 static inline __m128i rct_vtl128(uint8_t k) {
 	return _mm256_castsi256_si128(rct_vtl[k & 0x0F]);
 }
+#endif
 #endif
 
 #define rct_gauss_row_scale_sec rct_gauss_row_scale
@@ -1509,12 +1537,15 @@ static inline __m256i rct_bc_sec(uint8_t s) {
 	r = _mm256_xor_si256(r, _mm256_and_si256(rct_vtl[8], _mm256_cmpeq_epi8(_mm256_and_si256(sv, b8), b8)));
 	return r;
 }
+#if 0
 static inline __m128i rct_bc128_sec(uint8_t s) {
 	return _mm256_castsi256_si128(rct_bc_sec(s));
 }
+#endif
 #define RCT_BC_SEC(s)    rct_bc_sec((uint8_t)(s))
 #define RCT_BC128_SEC(s) rct_bc128_sec((uint8_t)(s))
 
+#if SNOVA_l != SNOVA_r
 static inline __m128i rct_gf16_mul128_sec(__m128i av, __m128i bv) {
 	const __m128i b1 = _mm_set1_epi8(1), b2 = _mm_set1_epi8(2),
 	              b4 = _mm_set1_epi8(4), b8 = _mm_set1_epi8(8);
@@ -1526,6 +1557,7 @@ static inline __m128i rct_gf16_mul128_sec(__m128i av, __m128i bv) {
 	return r;
 }
 
+#if 0
 static inline void rct_gauss_row_scale(gf_t *row, gf_t s, int k0, int kend) {
 	__m256i t = rct_vtl[s & 0x0F];
 	for (int k = k0; k < kend; k += 32) {
@@ -1541,8 +1573,10 @@ static inline void rct_gauss_row_axpy(gf_t *dst, const gf_t *src, gf_t s, int k0
 		_mm256_storeu_si256((__m256i *)(dst + k), _mm256_xor_si256(d, p));
 	}
 }
-
+#endif
+#endif
 #if SNOVA_l == 4
+#if 0
 static inline void rct_gf4_matmul_add(gf_t *acc, const gf_t *A, const gf_t *B) {
 	static const _Alignas(16) int8_t BM[4][16] = {
 		{0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -1566,6 +1600,8 @@ static inline void rct_gf4_matmul_add(gf_t *acc, const gf_t *A, const gf_t *B) {
 		memcpy(&acc[i * 4], &cur, 4);
 	}
 }
+#endif
+#if !USE_GFNI
 static inline void rct_matmul_l4rows(gf_t *C, const gf_t *A, const gf_t *B, int ad, int bd) {
 	for (int i = 0; i < ad; ++i) {
 		__m128i acc = _mm_setzero_si128();
@@ -1576,6 +1612,7 @@ static inline void rct_matmul_l4rows(gf_t *C, const gf_t *A, const gf_t *B, int 
 		memcpy(&C[i * 4], &r, 4);
 	}
 }
+#endif
 static inline void rct_matmul_l4rows_add(gf_t *C, const gf_t *A, const gf_t *B, int ad, int bd) {
 	for (int i = 0; i < ad; ++i) {
 		__m128i acc = _mm_setzero_si128();
@@ -1589,6 +1626,7 @@ static inline void rct_matmul_l4rows_add(gf_t *C, const gf_t *A, const gf_t *B, 
 	}
 }
 
+#if 0
 static inline void rct_gf4_matmul_add_sec(gf_t *acc, const gf_t *A, const gf_t *B) {
 	static const _Alignas(16) int8_t BM[4][16] = {
 		{0, 1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -1612,6 +1650,8 @@ static inline void rct_gf4_matmul_add_sec(gf_t *acc, const gf_t *A, const gf_t *
 		memcpy(&acc[i * 4], &cur, 4);
 	}
 }
+#endif
+#if SNOVA_l != SNOVA_r
 static inline void rct_matmul_l4rows_sec(gf_t *C, const gf_t *A, const gf_t *B, int ad, int bd) {
 	for (int i = 0; i < ad; ++i) {
 		__m128i acc = _mm_setzero_si128();
@@ -1622,6 +1662,7 @@ static inline void rct_matmul_l4rows_sec(gf_t *C, const gf_t *A, const gf_t *B, 
 		memcpy(&C[i * 4], &r, 4);
 	}
 }
+#endif
 #endif
 
 static inline void rct_gauss_row_scale_sec(gf_t *row, gf_t s, int k0, int kend) {
@@ -1673,19 +1714,24 @@ static void rct_build_mtk2(void) {
 			rct_mtk2[idx][x] = (uint8_t)(rct_multtab[(idx & 0x0F) * SNOVA_q + x] |
 			                             (rct_multtab[(idx >> 4) * SNOVA_q + x] << 4));
 }
+#if SNOVA_l == 5
 static inline __m256i rct_mtk2t(uint8_t idx) {
 	return _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *)rct_mtk2[idx]));
 }
+#endif
+#if !USE_GFNI || (SNOVA_l != 4)
 static inline __m256i rct_mtk2t16(uint16_t idx16) {
 	return _mm256_broadcastsi128_si256(
 	           _mm_load_si128((const __m128i *)((const uint8_t *)rct_mtk2 + idx16)));
 }
+#endif
 static inline __m256i rct_nib_lo(__m256i v) {
 	return _mm256_and_si256(v, _mm256_set1_epi8(0x0f));
 }
 static inline __m256i rct_nib_hi(__m256i v) {
 	return _mm256_and_si256(_mm256_srli_epi16(v, 4), _mm256_set1_epi8(0x0f));
 }
+#if SNOVA_l == 4
 static inline void rct_vf_expand_sig(gf_t *out, const uint8_t *in, size_t num) {
 	const __m128i m0f = _mm_set1_epi8(0x0f);
 	size_t nb = num / 2;
@@ -1703,15 +1749,17 @@ static inline void rct_vf_expand_sig(gf_t *out, const uint8_t *in, size_t num) {
 	}
 }
 #endif
+#endif
 
 #if RCT_VF_MTK2
+#if !USE_GFNI
 static inline __m128i rct_vf_pack_pair32(__m256i v, __m256i pl, __m256i ph) {
 	__m256i lo = _mm256_shuffle_epi8(v, pl);
 	__m256i hi = _mm256_shuffle_epi8(v, ph);
 	__m256i pk = _mm256_or_si256(lo, _mm256_slli_epi16(hi, 4));
 	return _mm256_castsi256_si128(_mm256_permute4x64_epi64(pk, 0x08));
 }
-
+#endif
 #if !RCT_USE_GFNI
 static const _Alignas(32) uint8_t RCT_VF_PPL[32] = {
 	0, 8, 1, 9, 2, 10, 3, 11, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
@@ -1751,6 +1799,7 @@ static void rct_build_vf_gfni(void) {
 		rct_vf_dwexp[b] = (b / 4 < SNOVA_r) ? (uint8_t)(b / 4) : 0x80;
 	}
 }
+#if SNOVA_l == SNOVA_r || SNOVA_r < 8
 static inline __m256i rct_vf_mm_dw(const uint8_t *Acm, const gf_t *B) {
 	const __m256i pat = _mm256_load_si256((const __m256i *)rct_vf_dwexp);
 	__m256i acc = _mm256_setzero_si256();
@@ -1789,6 +1838,7 @@ static inline void rct_vf_tr8(uint8_t *dst, const uint8_t *src, int rstride) {
 	_mm_store_si128((__m128i *)(dst + 32), _mm_unpacklo_epi32(v1, v3));
 	_mm_store_si128((__m128i *)(dst + 48), _mm_unpackhi_epi32(v1, v3));
 }
+#endif
 
 static __m256i rct_vf_thv[4];
 static __m256i rct_vf_aqko;
@@ -1866,8 +1916,6 @@ static inline __m256i rct_vf_aq_bq(const uint8_t *base, int off) {
 
 
 //#include "platforms/generic/rct_gf16_scalar.h"
-#ifndef RCT_GF16_SCALAR_H
-#define RCT_GF16_SCALAR_H
 
 static inline void gf_mat_mul(gf_t *a, const gf_t *b, const gf_t *c) {
 	for (int i1 = 0; i1 < SNOVA_l; i1++)
@@ -1880,6 +1928,8 @@ static inline void gf_mat_mul(gf_t *a, const gf_t *b, const gf_t *c) {
 		}
 }
 
+#if SNOVA_l == 5
+#if 0
 static inline void gf_mat_mul_add(gf_t *a, const gf_t *b, const gf_t *c) {
 	for (int i1 = 0; i1 < SNOVA_l; i1++)
 		for (int j1 = 0; j1 < SNOVA_l; j1++) {
@@ -1890,7 +1940,7 @@ static inline void gf_mat_mul_add(gf_t *a, const gf_t *b, const gf_t *c) {
 			gf_set_add(&a[i1 * SNOVA_l + j1], sum);
 		}
 }
-
+#endif
 static inline void gf_mat_mul_add_lr(gf_t *a, const gf_t *b, const gf_t *c, int ad, int bd, int cd) {
 	for (int i1 = 0; i1 < ad; i1++)
 		for (int j1 = 0; j1 < cd; j1++) {
@@ -1902,6 +1952,7 @@ static inline void gf_mat_mul_add_lr(gf_t *a, const gf_t *b, const gf_t *c, int 
 		}
 }
 
+#if 0
 static inline void gf_mat_mul_add_sec(gf_t *a, const gf_t *b, const gf_t *c) {
 	for (int i1 = 0; i1 < SNOVA_l; i1++)
 		for (int j1 = 0; j1 < SNOVA_l; j1++) {
@@ -1922,7 +1973,7 @@ static inline void gf_mat_mul_add_lr_sec(gf_t *a, const gf_t *b, const gf_t *c, 
 			gf_set_add(&a[i1 * cd + j1], sum);
 		}
 }
-
+#endif
 #endif
 
 
@@ -2104,6 +2155,7 @@ static void convert_bytes_to_GF(gf_t *gf_array, const uint8_t *byte_array, size_
 }
 
 #if SNOVA_q == 16
+#if SNOVA_l == 4
 static inline void rct_unpack_nib_seg(gf_t *dst, const uint8_t *src, size_t nb) {
 	size_t i = 0;
 #if RCT_USE_SIMD
@@ -2131,6 +2183,7 @@ static inline void rct_unpack_nib_seg(gf_t *dst, const uint8_t *src, size_t nb) 
 		dst[2 * i + 1] = (gf_t)(src[i] >> 4);
 	}
 }
+#endif
 #else
 static inline void rct_unpack_modq_seg(gf_t *dst, const uint8_t *src, size_t ngf) {
 	for (size_t i = 0; i < ngf; ++i) {
@@ -2151,7 +2204,7 @@ static void compress_gf(uint8_t *byte_array, const gf_t *gf_array, size_t num) {
 			i1++;
 			fact *= SNOVA_q;
 		}
-		i1 = (i1 + 1) / 2;
+		// i1 = (i1 + 1) / 2;
 		int j1 = 0;
 		while (j1 < PACK_BYTES && out_idx < num_bytes) {
 			byte_array[out_idx] = val & 0xff;
@@ -2598,6 +2651,7 @@ static inline void rct_a4f_xor5(gf_t *C, __m128i acc_folded) {
 		C[j] = (gf_t)(C[j] ^ pb[j]);
 	}
 }
+#if SNOVA_l == SNOVA_r && SNOVA_l != 5
 static inline void rct_a4f_cell_add(gf_t *C, const rct_a4f_bc_t bc[5], const gf_t *B) {
 	for (int i = 0; i < 5; ++i) {
 		rct_a4f_acc_t a = rct_a4f_zero();
@@ -2605,6 +2659,7 @@ static inline void rct_a4f_cell_add(gf_t *C, const rct_a4f_bc_t bc[5], const gf_
 		rct_a4f_xor5(&C[i * 5], rct_a4f_fold(a));
 	}
 }
+#endif
 #endif
 
 #if RCT_F5_M4
@@ -2618,6 +2673,7 @@ typedef struct {
 typedef struct {
 	__m256i a0, a1;
 } rct_m4f_acc_t;
+#if 0
 static inline rct_m4f_acc_t rct_m4f_zero(void) {
 	rct_m4f_acc_t z;
 	z.a0 = z.a1 = _mm256_setzero_si256();
@@ -2667,7 +2723,7 @@ static inline void rct_m4f_cell_add(gf_t *C, const rct_m4f_bc_t bc[5], const gf_
 		rct_m4f_xor5(&C[i * 5], rct_m4f_fold(a));
 	}
 }
-
+#endif
 static inline rct_m4f_bc_t rct_m4f2_bc_mirror(const uint16_t *ev5) {
 	__m256i evb = _mm256_broadcastsi128_si256(_mm_loadu_si128((const __m128i *)ev5));
 	rct_m4f_bc_t b;
@@ -2675,6 +2731,7 @@ static inline rct_m4f_bc_t rct_m4f2_bc_mirror(const uint16_t *ev5) {
 	b.b1 = _mm256_shuffle_epi8(evb, RCT_M4F_PAT1);
 	return b;
 }
+#if 0
 static inline void rct_m4f2_build_bc(rct_m4f_bc_t (*bc)[5], const gf_t *src, int n_cells) {
 	for (int c = 0; c < n_cells; ++c) {
 		_Alignas(32) uint16_t ev[32];
@@ -2684,6 +2741,7 @@ static inline void rct_m4f2_build_bc(rct_m4f_bc_t (*bc)[5], const gf_t *src, int
 		}
 	}
 }
+#endif
 static inline void rct_m4f2_mac5(__m256i *a0, __m256i *a1, const rct_m4f_bc_t *bc, const gf_t *w) {
 	const __m256i w0 = _mm256_cvtepu8_epi16(_mm_loadu_si128((const __m128i *)w));
 	const __m256i w1 = _mm256_cvtepu8_epi16(_mm_loadu_si128((const __m128i *)&w[16]));
@@ -2713,6 +2771,7 @@ static inline void rct_m4f2_fold5_xor(gf_t *C, const __m256i *a0, const __m256i 
 		}
 	}
 }
+#if 0
 static inline void rct_m4f2_fold_F12(gf_t *F12, const gf_t *P11, const gf_t *T12) {
 	for (int i1 = 0; i1 < SNOVA_m1; ++i1)
 		for (int j1 = 0; j1 < SNOVA_v; ++j1) {
@@ -2732,6 +2791,7 @@ static inline void rct_m4f2_fold_F12(gf_t *F12, const gf_t *P11, const gf_t *T12
 			}
 		}
 }
+#endif
 static inline void rct_m4f2_fold_P22_pass1(gf_t *P22, const gf_t *T12, const gf_t *F12) {
 	for (int j1 = 0; j1 < SNOVA_o; ++j1) {
 		rct_m4f_bc_t bc[SNOVA_v][5];
@@ -2758,6 +2818,7 @@ static inline void rct_m4f2_fold_P22_pass1(gf_t *P22, const gf_t *T12, const gf_
 		SNOVA_CLEAR_OBJ(bc);
 	}
 }
+#if 0
 static inline void rct_m4f2_fold_P22_pass2(gf_t *P22, const gf_t *P21, const gf_t *T12) {
 	for (int i1 = 0; i1 < SNOVA_m1; ++i1)
 		for (int j1 = 0; j1 < SNOVA_o; ++j1) {
@@ -2793,6 +2854,7 @@ static inline void rct_m4f2_fold_row_bsec(gf_t *Crow, const gf_t *Arow, const gf
 		rct_m4f2_fold5_xor(C, a0, a1);
 	}
 }
+#endif
 #endif
 
 #if RCT_F5_A4 || RCT_F5_M4 || RCT_F5_WIDE
@@ -2916,7 +2978,7 @@ static inline void rct_f5_fold_P22_pass2(gf_t *P22, const gf_t *P21, const gf_t 
 		}
 #endif
 }
-
+#if 0
 static inline void rct_f5_fold_row_bsec(gf_t *Crow, const gf_t *Arow, const gf_t *T12) {
 #if RCT_F5_M4
 	rct_m4f2_fold_row_bsec(Crow, Arow, T12);
@@ -2944,6 +3006,7 @@ static inline void rct_f5_fold_row_bsec(gf_t *Crow, const gf_t *Arow, const gf_t
 	}
 #endif
 }
+#endif
 #endif
 #endif
 #endif
@@ -6527,7 +6590,7 @@ static int rct_sign_expanded(rct_skx_t *skx, uint8_t *sig, const uint8_t *digest
 			sign_rc = -1;
 			goto sign_cleanup;
 		}
-		flag_redo = 0;
+		// flag_redo = 0;
 
 		uint8_t vinegar_in_byte[NUM_GEN_SEC_BYTES];
 		shake_t v_instance;

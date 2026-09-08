@@ -54,9 +54,13 @@ static inline void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size
  * SNOVA public XOF
  */
 
+#ifndef SKIP_PK_EXPAND
+
 #ifdef AESCTR
 
 #include <aes.h>
+
+#if SNOVA_OPT != 5
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *input, size_t inlen) {
 	const uint8_t iv[16] = {0};
@@ -69,6 +73,8 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *inpu
 	OQS_AES128_CTR_inc_stream_iv(iv, 12, state, data, num_bytes);
 	OQS_AES128_free_schedule(state);
 }
+
+#else
 
 #define NUM_BYTES 128
 
@@ -97,7 +103,7 @@ static void snova_aes_expand_block(snova_pk_expander_t *instance) {
 	uint8_t out[NUM_BYTES] = {0};
 
 	for (int i = 0; i < NUM_BYTES / 16; i++) {
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < 4; j++) {
 			in[i * 16 + 15 - j] = (instance->block_i >> (8 * j)) & 0xff;
 		}
 		instance->block_i++;
@@ -164,7 +170,11 @@ static void snova_pk_expander_free(snova_pk_expander_t *arg) {
 	(void)arg;
 }
 
+#endif
+
 #else
+
+#if SNOVA_OPT != 5
 
 #if defined(OQS_ENABLE_SHA3_xkcp_low_avx2)
 
@@ -251,6 +261,8 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *in, 
 }
 
 #endif
+
+#else
 
 typedef struct {
 	uint64_t states[50];
@@ -347,6 +359,8 @@ static void snova_pk_expander_free(snova_pk_expander_t *instance) {
 	(void)instance;
 }
 
+#endif
+#endif
 #endif
 
 #endif /* SYMMETRIC_H */

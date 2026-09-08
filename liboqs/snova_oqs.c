@@ -10,11 +10,13 @@
 #include <string.h>
 
 #include "snova.h"
+
+#define SKIP_PK_EXPAND
+
 #include "symmetric.h"
 
 OQS_STATUS SNOVA_NAMESPACE(oqs_keypair)(uint8_t *pk, uint8_t *sk) {
 	uint8_t seed_pair[SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE];
-	uint8_t *pt_private_key_seed;
 	uint8_t *pt_public_key_seed;
 
 	OQS_randombytes(seed_pair, SEED_LENGTH_PUBLIC + SEED_LENGTH_PRIVATE);

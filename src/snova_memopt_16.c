@@ -239,7 +239,7 @@ int SNOVA_NAMESPACE(genkeys)(uint8_t *pk, uint8_t *sk, const uint8_t *seed) {
 		for (int nj = 0; nj < SNOVA_v; nj++) {
 			uint16_t P11i[SNOVA_o * SNOVA_l2] = {0};
 			for (int nk = 0; nk < SNOVA_v; nk++) {
-				uint8_t P11b[SNOVA_l2];
+				uint8_t P11b[SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P11b, SNOVA_l2, &instance);
 				uint16_t P11x[SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_l2; i1++) {
@@ -272,7 +272,7 @@ int SNOVA_NAMESPACE(genkeys)(uint8_t *pk, uint8_t *sk, const uint8_t *seed) {
 		 */
 		for (int nj = 0; nj < SNOVA_v; nj++)
 			for (int ni = 0; ni < SNOVA_o; ni++) {
-				uint8_t P12b[SNOVA_l2];
+				uint8_t P12b[SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P12b, SNOVA_l2, &p12_instance);
 				uint16_t P12x[SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_l2; i1++) {
@@ -289,7 +289,7 @@ int SNOVA_NAMESPACE(genkeys)(uint8_t *pk, uint8_t *sk, const uint8_t *seed) {
 
 		for (int nk = 0; nk < SNOVA_o; nk++)
 			for (int nj = 0; nj < SNOVA_v; nj++) {
-				uint8_t P21b[SNOVA_l2];
+				uint8_t P21b[SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P21b, SNOVA_l2, &p21_instance);
 				uint16_t P21x[SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_l2; i1++) {
@@ -454,7 +454,7 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK *skx_arg, uint8_t *sig, const uint8_
 			for (int ni = 0; ni < SNOVA_v; ++ni) {
 				// P11
 
-				uint8_t P11b[SNOVA_v * SNOVA_l2];
+				uint8_t P11b[SNOVA_v * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P11b, SNOVA_v * SNOVA_l2, &instance);
 				uint16_t P11x[SNOVA_v * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_v * SNOVA_l2; i1++) {
@@ -540,7 +540,7 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK *skx_arg, uint8_t *sig, const uint8_
 
 			for (int nj = 0; nj < SNOVA_v; ++nj) {
 				// Right
-				uint8_t P12b[SNOVA_o * SNOVA_l2];
+				uint8_t P12b[SNOVA_o * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P12b, SNOVA_o * SNOVA_l2, &p12_instance);
 				uint16_t P12x[SNOVA_o * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_o * SNOVA_l2; i1++) {
@@ -561,7 +561,7 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK *skx_arg, uint8_t *sig, const uint8_
 
 			for (int idx = 0; idx < SNOVA_o; idx++) {
 				// Right
-				uint8_t P21b[SNOVA_v * SNOVA_l2];
+				uint8_t P21b[SNOVA_v * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P21b, SNOVA_v * SNOVA_l2, &p21_instance);
 				uint16_t P21x[SNOVA_v * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_v * SNOVA_l2; i1++) {
@@ -986,7 +986,7 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK *pkx, const uint8_t *sig, const ui
 			// P11
 			for (int ni = 0; ni < SNOVA_v; ++ni) {
 				// Right
-				uint8_t P11b[SNOVA_v * SNOVA_l2];
+				uint8_t P11b[SNOVA_v * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P11b, SNOVA_v * SNOVA_l2, &instance);
 				uint16_t P11x[SNOVA_v * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_v * SNOVA_l2; i1++) {
@@ -1019,7 +1019,7 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK *pkx, const uint8_t *sig, const ui
 			// P12
 			for (int ni = 0; ni < SNOVA_v; ++ni) {
 				// Right
-				uint8_t P12b[SNOVA_o * SNOVA_l2];
+				uint8_t P12b[SNOVA_o * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P12b, SNOVA_o * SNOVA_l2, &p12_instance);
 				uint16_t P12x[SNOVA_o * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_o * SNOVA_l2; i1++) {
@@ -1052,7 +1052,7 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK *pkx, const uint8_t *sig, const ui
 			// P21
 			for (int ni = 0; ni < SNOVA_o; ++ni) {
 				// Right
-				uint8_t P21b[SNOVA_v * SNOVA_l2];
+				uint8_t P21b[SNOVA_v * SNOVA_l2] = {0};
 				snova_pk_expander_squeeze(P21b, SNOVA_v * SNOVA_l2, &p21_instance);
 				uint16_t P21x[SNOVA_v * SNOVA_l2];
 				for (int i1 = 0; i1 < SNOVA_v * SNOVA_l2; i1++) {

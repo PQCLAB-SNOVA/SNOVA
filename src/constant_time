@@ -20,13 +20,13 @@
 {
    Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_opt_16.c:1292
+   src:snova_opt_16.c:1290
 }
 
 {
    Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_opt_16.c:1324
+   src:snova_opt_16.c:1322
 }
 
 # q=16, l=2
@@ -34,13 +34,13 @@
 {
    Rejection sampling when no valid solution was found
    Memcheck:Cond
-   src:snova_opt_16_2.c:1375
+   src:snova_opt_16_2.c:1373
 }
 
 {
    Rejection sampling when no valid solution was found
    Memcheck:Cond
-   src:snova_opt_16_2.c:1407
+   src:snova_opt_16_2.c:1405
 }
 
 # q=16, AVX2
@@ -48,19 +48,19 @@
 {
    Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_avx2_16.c:6668
+   src:snova_avx2_16.c:6731
 }
 
 {
    Rejection sampling when no valid solution was found, no GFNI
    Memcheck:Cond
-   src:snova_avx2_16.c:6724
+   src:snova_avx2_16.c:6787
 }
 
 {
    Obscure error message on a fixed for loop
    Memcheck:Cond
-   src:snova_avx2_16.c:4036
+   src:snova_avx2_16.c:4099
 }
 
 # q=16, memopt
