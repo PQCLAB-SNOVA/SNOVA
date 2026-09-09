@@ -18,17 +18,6 @@ principal-submitters:
   - Po-En Tseng
   - Chia-Chun Wang
 implementations:
-  - name: opt
-    version: 3.0
-    folder_name: .
-    compile_opts: -DSNOVA_OPT=10 -DSNOVA_NAME=SNOVA_III_X_AES -DSNOVA_v=76 -DSNOVA_o=25 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR
-    signature_keypair: _SNOVA_III_X_AES_opt_oqs_keypair
-    signature_signature: _SNOVA_III_X_AES_opt_oqs_sign
-    signature_verify: _SNOVA_III_X_AES_opt_oqs_verify
-    sources: LICENSE
-    common_dep: snova_opt_16_2
-    large-stack-usage: true
-    supported-platforms: all
   - name: avx2
     version: 3.0
     folder_name: .
@@ -45,24 +34,7 @@ implementations:
           - Linux
         required_flags:
           - avx2
-  - name: neon
-    version: 3.0
-    folder_name: .
-    compile_opts: -DSNOVA_OPT=11 -DSNOVA_NAME=SNOVA_III_X_AES -DSNOVA_v=76 -DSNOVA_o=25 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR
-    signature_keypair: _SNOVA_III_X_AES_neon_oqs_keypair
-    signature_signature: _SNOVA_III_X_AES_neon_oqs_sign
-    signature_verify: _SNOVA_III_X_AES_neon_oqs_verify
-    sources: LICENSE
-    common_dep: snova_opt_16_2
-    large-stack-usage: true
-    supported_platforms:
-      - architecture: arm_8
-        operating_systems:
-          - Darwin
-          - Linux
-        required_flags:
-          - asimd
-  - name: memopt
+  - name: opt
     version: 3.0
     folder_name: .
     compile_opts: -DSNOVA_OPT=5 -DSNOVA_NAME=SNOVA_III_X_AES -DSNOVA_v=76 -DSNOVA_o=25 -DSNOVA_q=16 -DSNOVA_l=2 -DAESCTR

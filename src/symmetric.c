@@ -82,12 +82,12 @@ void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_
 	memcpy(instance->key, seed, 16);
 }
 
-static inline void snova_aes_expander_block(snova_aes_impl_t *instance) {
+static void snova_aes_expander_block(snova_aes_impl_t *instance) {
 	uint8_t in[NUM_BYTES] = {0};
 	uint8_t out[NUM_BYTES] = {0};
 
 	for (int i = 0; i < NUM_BYTES / 16; i++) {
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < 4; j++) {
 			in[i * 16 + 15 - j] = (instance->block_i >> (8 * j)) & 0xff;
 		}
 		instance->block_i++;
@@ -266,7 +266,7 @@ void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_
 	memcpy(instance->seed, seed, SEED_LENGTH_PUBLIC);
 }
 
-static inline void snova_pk_expand_gf_block(snova_pkx_impl_t *instance) {
+static void snova_pk_expand_gf_block(snova_pkx_impl_t *instance) {
 	alignas(STREAM_PAR * 8) uint64_t buffer[25 * STREAM_PAR];
 
 	// Align to uint64_t

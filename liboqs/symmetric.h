@@ -54,20 +54,27 @@ static inline void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size
  * SNOVA public XOF
  */
 
+#ifndef SKIP_PK_EXPAND
+
 #ifdef AESCTR
 
 #include <aes.h>
+
+#if SNOVA_OPT != 5
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *input, size_t inlen) {
 	const uint8_t iv[16] = {0};
 	void *state;
 
 	assert(inlen == 16);
+	(void)inlen;
 
 	OQS_AES128_CTR_inc_init(input, &state);
 	OQS_AES128_CTR_inc_stream_iv(iv, 12, state, data, num_bytes);
 	OQS_AES128_free_schedule(state);
 }
+
+#else
 
 #define NUM_BYTES 128
 
@@ -85,6 +92,7 @@ typedef struct {
 static void snova_pk_expander_init(snova_pk_expander_t *arg, const uint8_t *seed, size_t input_bytes) {
 	snova_pk_expander_t *instance = (snova_pk_expander_t *)arg;
 	assert(input_bytes == SEED_LENGTH_PUBLIC);
+	(void)input_bytes;
 
 	memset(instance, 0, sizeof(snova_pk_expander_t));
 	memcpy(instance->key, seed, 16);
@@ -95,7 +103,7 @@ static void snova_aes_expand_block(snova_pk_expander_t *instance) {
 	uint8_t out[NUM_BYTES] = {0};
 
 	for (int i = 0; i < NUM_BYTES / 16; i++) {
-		for (int j = 0; j < 8; j++) {
+		for (int j = 0; j < 4; j++) {
 			in[i * 16 + 15 - j] = (instance->block_i >> (8 * j)) & 0xff;
 		}
 		instance->block_i++;
@@ -162,7 +170,11 @@ static void snova_pk_expander_free(snova_pk_expander_t *arg) {
 	(void)arg;
 }
 
+#endif
+
 #else
+
+#if SNOVA_OPT != 5
 
 #if defined(OQS_ENABLE_SHA3_xkcp_low_avx2)
 
@@ -173,6 +185,7 @@ static void snova_pk_expander_free(snova_pk_expander_t *arg) {
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *pt_seed_array, size_t inlen) {
 	assert(inlen == SEED_LENGTH_PUBLIC);
+	(void)inlen;
 
 	size_t index = 0;
 	uint64_t block = 0;
@@ -215,6 +228,7 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *pt_s
 
 static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *in, size_t inlen) {
 	assert(inlen == SEED_LENGTH_PUBLIC);
+	(void)inlen;
 
 	size_t index = 0;
 	uint64_t block = 0;
@@ -248,6 +262,8 @@ static void snova_pk_expand(uint8_t *data, size_t num_bytes, const uint8_t *in, 
 
 #endif
 
+#else
+
 typedef struct {
 	uint64_t states[50];
 	uint8_t seed[SEED_LENGTH_PUBLIC];
@@ -259,6 +275,7 @@ typedef struct {
 
 static void snova_pk_expander_init(snova_pk_expander_t *instance, const uint8_t *seed, size_t input_bytes) {
 	assert(input_bytes == SEED_LENGTH_PUBLIC);
+	(void)input_bytes;
 
 	instance->block = 0;
 	instance->index = 0;
@@ -342,6 +359,8 @@ static void snova_pk_expander_free(snova_pk_expander_t *instance) {
 	(void)instance;
 }
 
+#endif
+#endif
 #endif
 
 #endif /* SYMMETRIC_H */

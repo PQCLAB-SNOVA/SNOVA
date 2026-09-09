@@ -88,13 +88,11 @@ static inline gf_t gf_mult(const gf_t a, const gf_t b) {
 	return gf_multtab[a * SNOVA_q + b];
 }
 
-static inline gf_t gf_inv(const gf_t a) {
-	return gf_invtab[a];
-}
-
+#if SNOVA_l == 5
 static inline gf_t gf_add(const gf_t a, const gf_t b) {
 	return gf_addtab[a * SNOVA_q + b];
 }
+#endif
 
 static inline void gf_set_add(gf_t *a, const gf_t b) {
 	*a = gf_addtab[*a * SNOVA_q + b];
