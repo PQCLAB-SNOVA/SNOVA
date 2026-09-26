@@ -1163,6 +1163,10 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t *sig, const uint8_t *d
  * PK expansion.
  */
 int SNOVA_NAMESPACE(pk_expand)(expanded_PK* pkx, const uint8_t *pk) {
+	if (first_time) {
+		snova_init();
+	}
+
 	memset(pkx, 0, sizeof(expanded_PK));
 	memcpy(pkx->pk_seed, pk, SEED_LENGTH_PUBLIC);
 #if HASH_PK
