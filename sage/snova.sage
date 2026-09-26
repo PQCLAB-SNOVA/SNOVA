@@ -404,8 +404,22 @@ def sign(sk, msg, salt):
         # Vinegar from sk and salt
 
         v_state = shake_256(sk_seed + shake_256(msg).digest(64) + salt + num_sign.to_bytes(1))
-        vinegar_byte = v_state.digest(BYTES_GF(v * l * r))
-        vinegar_gf = expand_gf(vinegar_byte, v * l * r)
+        vinegar_byte = v_state.digest(2 * v * l * r)  # Overdimensioned
+        # vinegar_gf = expand_gf(vinegar_byte, v * l * r)
+        vinegar_gf = []
+        idx = 0
+        i = 0
+        while i < v * l * r:
+            b = vinegar_byte[idx]
+            if q == 16:
+                vinegar_gf.append(from_int(b % 16))
+                vinegar_gf.append(from_int(b // 16))
+                i += 2
+            else:
+                if b < (256 // q) * q:
+                    vinegar_gf.append(from_int(b % q))
+                    i += 1
+            idx += 1
         vinegar = matrix(GF_q, v * l, r, lambda i, j: vinegar_gf[i * r + j])
 
         # Compute the vinegar part of the central map

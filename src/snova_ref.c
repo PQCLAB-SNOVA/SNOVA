@@ -883,9 +883,30 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t *sig, const uint8_t *d
 		shake_absorb(&v_instance, salt, BYTES_SALT);
 		shake_absorb(&v_instance, &num_sign, 1);
 		shake_finalize(&v_instance);
-		shake_squeeze(vinegar_in_byte, NUM_GEN_SEC_BYTES, &v_instance);
 
-		expand_gf(signature_in_GF, vinegar_in_byte, SNOVA_v * SNOVA_lr);
+		size_t b_idx = SK_BLOCK_SIZE;
+		size_t t_idx = 0;
+
+		while (t_idx < SNOVA_v * SNOVA_l * SNOVA_r) {
+			if (b_idx >= SK_BLOCK_SIZE) {
+				shake_squeeze(vinegar_in_byte, SK_BLOCK_SIZE, &v_instance);
+				b_idx = 0;
+			}
+
+#if SNOVA_q != 16
+			// Rejection sampling
+			if (vinegar_in_byte[b_idx] < REJECTION_LIMIT) {
+				signature_in_GF[t_idx] = vinegar_in_byte[b_idx] % SNOVA_q;
+				t_idx++;
+			}
+#else
+			signature_in_GF[t_idx] = vinegar_in_byte[b_idx] & 0xf;
+			t_idx++;
+			signature_in_GF[t_idx] = vinegar_in_byte[b_idx] >> 4;
+			t_idx++;
+#endif
+			b_idx++;
+		}
 
 		// Calculate Fvv
 		gf_t Fvv_in_GF16Matrix[SNOVA_o * SNOVA_lr] = {0};
