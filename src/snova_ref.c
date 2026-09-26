@@ -1268,7 +1268,7 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK* pkx, const uint8_t *sig, const ui
 	 */
 	gf_t hash_in_GF[SNOVA_o * SNOVA_lr] = {0};
 	gf_t sum_t0[SNOVA_m1 * SNOVA_l * SNOVA_n * SNOVA_lr] = {0};
-	gf_t sum_t1[SNOVA_m1 * SNOVA_l2 * SNOVA_n * SNOVA_r2] = {0};
+	gf_t sum_t1[SNOVA_m1 * SNOVA_l2 * SNOVA_r2] = {0};
 
 	/**
 	 * Whip signature
