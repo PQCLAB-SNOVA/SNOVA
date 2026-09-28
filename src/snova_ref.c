@@ -1163,6 +1163,10 @@ int SNOVA_NAMESPACE(sign)(const expanded_SK* skx, uint8_t *sig, const uint8_t *d
  * PK expansion.
  */
 int SNOVA_NAMESPACE(pk_expand)(expanded_PK* pkx, const uint8_t *pk) {
+	if (first_time) {
+		snova_init();
+	}
+
 	memset(pkx, 0, sizeof(expanded_PK));
 	memcpy(pkx->pk_seed, pk, SEED_LENGTH_PUBLIC);
 #if HASH_PK
@@ -1264,7 +1268,7 @@ int SNOVA_NAMESPACE(verify)(const expanded_PK* pkx, const uint8_t *sig, const ui
 	 */
 	gf_t hash_in_GF[SNOVA_o * SNOVA_lr] = {0};
 	gf_t sum_t0[SNOVA_m1 * SNOVA_l * SNOVA_n * SNOVA_lr] = {0};
-	gf_t sum_t1[SNOVA_m1 * SNOVA_l2 * SNOVA_n * SNOVA_r2] = {0};
+	gf_t sum_t1[SNOVA_m1 * SNOVA_l2 * SNOVA_r2] = {0};
 
 	/**
 	 * Whip signature
