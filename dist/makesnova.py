@@ -23,14 +23,6 @@ recommended = [
     ['SNOVA_V_S', 40, 6, 16, 5, 5, 6],
 ]
 
-short_signatures = [
-    ['SNOVA_I_X', 50, 17, 16, 2],
-    ['SNOVA_III_X', 76, 25, 16, 2],
-    ['SNOVA_V_X', 104, 33, 16, 2, 2, 33],
-]
-
-recommended += short_signatures
-
 aes_list = [False, True]
 
 gen_sources = [
@@ -215,21 +207,6 @@ for target in ['ref', 'opt', 'mem', 'avx2']:
                         sources += [
                             'abq_snova_v_s.h',
                         ]
-                    elif o == 17 and l == 2 and r == 2:
-                        sources += [
-                            'abq_snova_i_x.h',
-                        ]
-                    elif o == 25 and l == 2 and r == 2:
-                        sources += [
-                            'abq_snova_iii_x.h',
-                        ]
-                    elif o == 33 and l == 2 and r == 2:
-                        sources += [
-                            'abq_snova_v_x.h',
-                        ]
-                elif l == 2:
-                    snova_src = 'snova_opt_16_2'
-                    opt = 21
                 elif target == 'avx2':
                     snova_src = 'snova_avx2_16'
                     opt = 20

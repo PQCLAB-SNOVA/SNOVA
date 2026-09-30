@@ -10,19 +10,6 @@
 
 #elif 0
 
-// Alternative Parameter Set: Small signature
-
-#define SNOVA_v 50
-#define SNOVA_o 17
-#define SNOVA_q 16
-#define SNOVA_l 2
-#define SNOVA_r 2
-#define SNOVA_m1 SNOVA_o
-#define SNOVA_NAME SNOVA_I_X_AES
-#define AESCTR
-
-#elif 0
-
 #define SNOVA_v 29
 #define SNOVA_o 3
 #define SNOVA_q 16

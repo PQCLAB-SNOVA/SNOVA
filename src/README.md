@@ -19,9 +19,8 @@ make clean all P="-D SNOVA_v=27 -D SNOVA_o=5 -D SNOVA_q=16 -D SNOVA_l=4 -D AESCT
 Available optimization options are:
 1. Use `make OPT=REF` to build the reference implementation in `snova_ref.c`,
 2. Use `make OPT=OPT` (default) for the optimized version.
-3. Use `make OPT=OPT2` for version specifically optimized for $l=2$. On x86 this is the fastest version when $l=2$.
-4. Use `make OPT=AVX2` for a faster optimized version for $l=4,5$ that uses explicit AVX2 or GFNI instructions.
-5. Use `make OPT=MEM` for a plain-C version that uses substantially less memory. On x86 this version is about three to five times slower than the `AVX2` and `OPT2` versions. We expect that further reductions in both compute time and memory usage are possible.
+3. Use `make OPT=AVX2` for a faster optimized version for $l=4,5$ that uses explicit AVX2 or GFNI instructions.
+4. Use `make OPT=MEM` for a plain-C version that uses substantially less memory. On x86 this version is much slower than the `AVX2` and `OPT2` versions. We expect that further reductions in both compute time and memory usage are possible.
 
 
 Symmetric Primitives
